@@ -22,36 +22,24 @@ EthriaPlotCount ist ein speziell für PlotSquared entwickeltes Plugin, das es Sp
 
 ---
 
-## 📚 Wiki-Seiten
+## 📚 Wiki-Navigation
 
 ### 🎯 Grundlagen
-- **[[Installation & Setup|Installation]]**
-- **[[Erste Schritte|Getting-Started]]**
-- **[[Befehle & Aliases|Commands]]**
-- **[[Konfiguration|Configuration]]**
-
-### 🔐 Berechtigungen
-- **[[Permissions Übersicht|Permissions]]**
-- **[[Entity-Gruppen|Entity-Groups]]**
-- **[[Plot-Zugriff|Plot-Access]]**
-- **[[Admin-Berechtigungen|Admin-Permissions]]**
+- **[[Permissions]]** - Umfassendes Berechtigungssystem
+- **[[Installation]]** - Setup und Installation
+- **[[Commands]]** - Alle Befehle und Aliases
+- **[[Configuration]]** - Konfigurationsoptionen
 
 ### 🌟 Features
-- **[[Entity-Kategorien|Entity-Categories]]**
-- **[[Mehrsprachigkeit|Multi-Language]]**
-- **[[Tab-Completion|Tab-Completion]]**
-- **[[Merge-Plot-Unterstützung|Merged-Plots]]**
+- **[[Entity-Categories]]** - Alle unterstützten Entity-Typen
+- **[[Multilanguage]]** - Deutsche/Englische Übersetzungen
+- **[[Tab-Completion]]** - Intelligente Befehlsergänzung
+- **[[Merged-Plots]]** - Merge-Plot-Unterstützung
 
 ### 🛠️ Administration
-- **[[Server-Setup|Server-Setup]]**
-- **[[Debug & Troubleshooting|Debugging]]**
-- **[[Performance-Optimierung|Performance]]**
-- **[[FAQ|FAQ]]**
-
-### 🎨 Anpassung
-- **[[Custom Messages|Custom-Messages]]**
-- **[[Chat-Prefix|Chat-Prefix]]**
-- **[[Entity-Übersetzungen|Entity-Translations]]**
+- **[[Debugging]]** - Debug-System und Troubleshooting
+- **[[Performance]]** - Performance-Optimierung
+- **[[FAQ]]** - Häufig gestellte Fragen
 
 ---
 
@@ -112,7 +100,6 @@ Spieler: /pc Kuh             # Funktioniert auch!
 - **[GitHub Repository](https://github.com/Leahcimkrob/EthriaPlotCount)**
 - **[Releases & Downloads](https://github.com/Leahcimkrob/EthriaPlotCount/releases)**
 - **[Issues & Bug Reports](https://github.com/Leahcimkrob/EthriaPlotCount/issues)**
-- **[Discord Support](https://discord.gg/yourserver)**
 
 ---
 
@@ -155,22 +142,18 @@ Spieler: /pc Kuh             # Funktioniert auch!
 
 ---
 
-*Diese Wiki wird regelmäßig aktualisiert. Bei Fragen oder Problemen nutzen Sie bitte die GitHub Issues oder den Discord-Support.*
-
----
-
 ## 🆘 Sofort-Hilfe
 
 ### ❓ Plugin funktioniert nicht?
-1. Prüfen Sie die [[System-Anforderungen|#-system-anforderungen]]
-2. Überprüfen Sie die [[Installation|Installation]]
+1. Prüfen Sie die [[System-Anforderungen|#system-anforderungen]]
+2. Überprüfen Sie die [[Installation]]
 3. Aktivieren Sie [[Debug-Mode|Debugging]]
 4. Erstellen Sie ein [GitHub Issue](https://github.com/Leahcimkrob/EthriaPlotCount/issues)
 
 ### ❓ Berechtigung-Probleme?
 1. Lesen Sie die [[Permissions-Dokumentation|Permissions]]
-2. Prüfen Sie die [[Plot-Zugriff-Einstellungen|Plot-Access]]
-3. Testen Sie mit Admin-Berechtigung
+2. Testen Sie mit Admin-Berechtigung
+3. Prüfen Sie Plot-Zugriff-Einstellungen
 
 ### ❓ Entity wird nicht gezählt?
 1. Prüfen Sie die [[Entity-Kategorien|Entity-Categories]]
@@ -178,5 +161,7 @@ Spieler: /pc Kuh             # Funktioniert auch!
 3. Aktivieren Sie Debug-Logs
 
 ---
+
+*Diese Wiki wird regelmäßig aktualisiert. Bei Fragen oder Problemen nutzen Sie bitte die GitHub Issues.*
 
 *Made with ❤️ for the Minecraft community*
