@@ -1,6 +1,6 @@
 # Deutsche Nachrichten für EthriaPlotCount
 messages:
-  prefix: "&8[&6EthriaCount&8]&7 » "
+  prefix: "&8[&6PlotCount&8]&7 » "
 
   # Allgemeine Nachrichten
   plugin_enabled: "Plugin wurde erfolgreich aktiviert!"
