@@ -25,6 +25,7 @@ dependency-reduced-pom.xml
 /server/
 /test-server/
 
-#Wiki-Seiten
+# Wiki-Seiten (werden separat im Wiki-Repository verwaltet)
 /wiki/
 *.md
+!README.md
