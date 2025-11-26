@@ -24,3 +24,7 @@ dependency-reduced-pom.xml
 # Server-Verzeichnisse (falls lokal getestet)
 /server/
 /test-server/
+
+#Wiki-Seiten
+/wiki/
+*.md
