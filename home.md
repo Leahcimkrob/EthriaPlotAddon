@@ -109,9 +109,9 @@ Spieler: /pc Kuh             # Funktioniert auch!
 
 ## 🔗 Wichtige Links
 
-- **[GitHub Repository](https://github.com/yourusername/EthriaPlotCount)**
-- **[Releases & Downloads](https://github.com/yourusername/EthriaPlotCount/releases)**
-- **[Issues & Bug Reports](https://github.com/yourusername/EthriaPlotCount/issues)**
+- **[GitHub Repository](https://github.com/Leahcimkrob/EthriaPlotCount)**
+- **[Releases & Downloads](https://github.com/Leahcimkrob/EthriaPlotCount/releases)**
+- **[Issues & Bug Reports](https://github.com/Leahcimkrob/EthriaPlotCount/issues)**
 - **[Discord Support](https://discord.gg/yourserver)**
 
 ---

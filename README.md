@@ -349,9 +349,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-- **Issues**: [GitHub Issues](https://github.com/yourusername/EthriaPlotCount/issues)
+- **Issues**: [GitHub Issues](https://github.com/Leahcimkrob/EthriaPlotCount/issues)
 - **Discord**: [Your Discord Server](https://discord.gg/yourserver)
-- **Documentation**: [Wiki](https://github.com/yourusername/EthriaPlotCount/wiki)
+- **Documentation**: [Wiki](https://github.com/Leahcimkrob/EthriaPlotCount/wiki)
 
 ---
 
