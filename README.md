@@ -1,6 +1,6 @@
 # EthriaPlotCount
 
-[![Download](https://img.shields.io/badge/Download-v1.1-brightgreen?style=for-the-badge)](https://github.com/leahcimkrob/EthriaPlotCount/releases/tag/v1.1)
+[![Download](https://img.shields.io/badge/Download-v1.1-brightgreen.svg)](https://github.com/leahcimkrob/EthriaPlotCount/releases/tag/v1.1)
 [![Java](https://img.shields.io/badge/Java-21+-orange.svg)](https://openjdk.java.net/projects/jdk/21/)
 [![Paper](https://img.shields.io/badge/Paper-1.21.8+-blue.svg)](https://papermc.io/)
 [![PlotSquared](https://img.shields.io/badge/PlotSquared-7.5.9+-green.svg)](https://github.com/IntellectualSites/PlotSquared)
