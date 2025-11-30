@@ -31,7 +31,7 @@ permissions:
   # === BASIS BERECHTIGUNGEN ===
   ethriaplotcount.use:
     description: Basis-Berechtigung um das Plugin zu verwenden
-    default: true
+    default: false
 
   ethriaplotcount.reload:
     description: Darf die Plugin-Konfiguration neu laden
@@ -40,7 +40,7 @@ permissions:
   # === PLOT-ZUGRIFF ===
   ethriaplotcount.own:
     description: Darf auf eigenen, getrusted oder added Plots zählen (nur wenn Owner online)
-    default: true
+    default: false
 
   ethriaplotcount.other:
     description: Darf auch auf fremden Plots zählen
@@ -60,7 +60,7 @@ permissions:
 
   ethriaplotcount.group.animals:
     description: Darf Tiere zählen (Kuh, Schaf, etc.)
-    default: true
+    default: false
 
   ethriaplotcount.group.mobs:
     description: Darf Monster zählen (Zombie, Skelett, etc.)
@@ -90,11 +90,11 @@ permissions:
   # Beispiele für spezifische Entity-Berechtigungen:
   ethriaplotcount.entity.sheep:
     description: Darf Schafe zählen
-    default: true
+    default: false
 
   ethriaplotcount.entity.cow:
     description: Darf Kühe zählen
-    default: true
+    default: false
 
   ethriaplotcount.entity.armor_stand:
     description: Darf Rüstungsständer zählen
