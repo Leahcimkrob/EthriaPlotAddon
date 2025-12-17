@@ -63,3 +63,9 @@ messages:
   plotcheck_owner_online: "&6Plot-Info: &7Plot &e{plotId} &7gehört &a{owner} &7(&aaktuell online&7)"
   plotcheck_owner_offline: "&6Plot-Info: &7Plot &e{plotId} &7gehört &c{owner} &7(&czuletzt online: {lastSeen}&7)"
   plotcheck_owner_never: "&6Plot-Info: &7Plot &e{plotId} &7gehört &c{owner} &7(&cwar noch nie online&7)"
+
+  # Plot-Check Live Update Nachrichten
+  plotcheck_live_enabled: "&aPlot-Info Updates aktiviert! Die Plot-Informationen werden jetzt dauerhaft in der ActionBar angezeigt."
+  plotcheck_live_disabled: "&aPlot-Info Updates deaktiviert! Die ActionBar wurde zurückgesetzt."
+  plotcheck_live_already_enabled: "&ePlot-Info Updates sind bereits aktiviert!"
+  plotcheck_live_already_disabled: "&ePlot-Info Updates sind bereits deaktiviert!"

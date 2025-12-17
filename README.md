@@ -1,6 +1,6 @@
 # EthriaPlotAddon
 
-[![Download](https://img.shields.io/badge/Download-v1.2-brightgreen.svg)](https://github.com/leahcimkrob/EthriaPlotAddon/releases/tag/v1.2)
+[![Download](https://img.shields.io/badge/Download-v1.3-brightgreen.svg)](https://github.com/leahcimkrob/EthriaPlotAddon/releases/tag/v1.3)
 [![Java](https://img.shields.io/badge/Java-21+-orange.svg)](https://openjdk.java.net/projects/jdk/21/)
 [![Paper](https://img.shields.io/badge/Paper-1.21+-blue.svg)](https://papermc.io/)
 [![PlotSquared](https://img.shields.io/badge/PlotSquared-7.5.9+-green.svg)](https://github.com/IntellectualSites/PlotSquared)
@@ -22,6 +22,8 @@ Ein leistungsstarkes Minecraft-Plugin für PlotSquared-Server mit Entity-Zählun
 
 ### 📊 Plot Management  
 - **Plot Check**: `/plotaddon check` - Shows plot owner and online status
+- **Live Updates**: `/plotaddon check on` - Permanent plot info in ActionBar (Admin-only)
+- **Stop Updates**: `/plotaddon check off` - Disable live plot updates (Admin-only)
 - **Extended Info**: `/plotaddon check -v` - Shows trusted players and merge info
 - **Real-time Status**: "Online now" vs "Last seen 2 days ago"
 
@@ -58,6 +60,8 @@ Ein leistungsstarkes Minecraft-Plugin für PlotSquared-Server mit Entity-Zählun
 # Plot information  
 /plotaddon check                # Show plot owner
 /plotaddon check -v             # Extended plot info
+/plotaddon check on             # Enable live plot updates (Admin-only)
+/plotaddon check off            # Disable live plot updates (Admin-only)
 
 # Administration
 /plotaddon reload               # Reload config
@@ -74,10 +78,37 @@ Ein leistungsstarkes Minecraft-Plugin für PlotSquared-Server mit Entity-Zählun
 - `ethriaplotaddon.plotcheck.use` - Check plot info
 
 ### Admin
-- `ethriaplotaddon.admin` - Full access
+- `ethriaplotaddon.admin` - Full access + live plot updates
 - `ethriaplotaddon.count.reload` - Reload config
 
 **Full permission list**: [Wiki Permissions](https://github.com/leahcimkrob/EthriaPlotAddon/wiki/Permissions)
+
+---
+
+## 🔗 Dependencies
+
+### Required
+- **Java 21+** - Required runtime
+- **Paper 1.21+** - Server software  
+- **PlotSquared 7.5.9+** - Plot management
+
+*No additional dependencies needed - uses vanilla Minecraft ActionBar*
+
+---
+
+## 🌟 New in v1.3
+
+- ✅ **Live Plot Updates** - Real-time plot info in ActionBar (Vanilla Minecraft)
+- ✅ **Auto-Config Updates** - Automatically adds new config values on plugin update
+- ✅ **Auto-Language Updates** - Automatically adds new message translations  
+- ✅ **Enhanced Commands** - `/plotaddon check on` and `/plotaddon check off` (Admin-only)
+- ✅ **Extended Plot Info** - `/plotaddon check -v` shows trusted players, merge status, and more
+- ✅ **No External Dependencies** - Uses vanilla Minecraft ActionBar (no CMI needed)
+- ✅ **Better Tab Completion** - Support for all new parameters with permission-based filtering
+- ✅ **Improved Permissions** - Separate permissions for plot checking and admin live-updates
+- ✅ **Multi-language** - German and English support with automatic updates
+- ✅ **Robust Error Handling** - Better stability and user feedback
+- ✅ **Configurable Update Intervals** - Customize ActionBar refresh rate
 
 ---
 

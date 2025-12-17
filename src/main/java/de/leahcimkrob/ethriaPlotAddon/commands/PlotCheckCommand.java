@@ -31,6 +31,127 @@ public class PlotCheckCommand implements SubcommandExecutor {
 
     @Override
     public boolean execute(Player player, String[] args) {
+        // Prüfe auf "on" oder "off" Parameter für Live-Updates (nur Admin)
+        if (args.length > 0) {
+            String subArg = args[0].toLowerCase();
+            
+            if ("on".equals(subArg)) {
+                // Prüfe Admin-Berechtigung für Live-Updates
+                if (!PermissionManager.hasAdminPermission(player)) {
+                    player.sendMessage(plugin.getMessageManager().getMessage("no_permission"));
+                    return true;
+                }
+                return handleLiveUpdatesOn(player);
+            } else if ("off".equals(subArg)) {
+                // Prüfe Admin-Berechtigung für Live-Updates
+                if (!PermissionManager.hasAdminPermission(player)) {
+                    player.sendMessage(plugin.getMessageManager().getMessage("no_permission"));
+                    return true;
+                }
+                return handleLiveUpdatesOff(player);
+            }
+        }
+        
+        // Standard Plot-Check ohne Live-Updates (normale Permission)
+        return executeStandardCheck(player, args);
+    }
+
+    /**
+     * Aktiviert Live-Updates (/plotaddon check on)
+     */
+    private boolean handleLiveUpdatesOn(Player player) {
+        // Prüfe ob Plugin korrekt initialisiert ist
+        if (plugin.getTitleUpdateManager() == null) {
+            player.sendMessage("§cPlugin ist noch nicht vollständig geladen. Bitte versuche es später erneut.");
+            return true;
+        }
+
+        // ActionBar ist immer verfügbar - keine CMI-Prüfung nötig
+
+        // Prüfe ob bereits aktiv
+        if (plugin.getTitleUpdateManager().hasActiveUpdates(player)) {
+            String message = plugin.getMessageManager().getMessage("plotcheck_live_already_enabled");
+            if (message == null) {
+                message = "§ePlot-Info Updates sind bereits aktiviert!";
+            }
+            player.sendMessage(message);
+            return true;
+        }
+
+        // Starte Updates
+        try {
+            if (plugin.getTitleUpdateManager().startUpdates(player)) {
+                String message = plugin.getMessageManager().getMessage("plotcheck_live_enabled");
+                if (message == null) {
+                    message = "§aPlot-Info Updates aktiviert! Die Plot-Informationen werden jetzt dauerhaft in der ActionBar angezeigt.";
+                }
+                player.sendMessage(message);
+                
+                if (plugin.getConfigManager() != null && plugin.getConfigManager().isDebugEnabled() && plugin.getDebugLogger() != null) {
+                    plugin.getDebugLogger().debug("Plot-Info Updates für Spieler %s aktiviert", player.getName());
+                }
+            } else {
+                player.sendMessage("§cFehler beim Aktivieren der Plot-Info Updates!");
+            }
+        } catch (Exception e) {
+            player.sendMessage("§cEin Fehler ist beim Aktivieren aufgetreten: " + e.getMessage());
+            plugin.getLogger().warning("Fehler in PlotCheckCommand (on): " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return true;
+    }
+
+    /**
+     * Deaktiviert Live-Updates (/plotaddon check off)
+     */
+    private boolean handleLiveUpdatesOff(Player player) {
+        // Prüfe ob Plugin korrekt initialisiert ist
+        if (plugin.getTitleUpdateManager() == null) {
+            player.sendMessage("§cPlugin ist noch nicht vollständig geladen. Bitte versuche es später erneut.");
+            return true;
+        }
+
+        // ActionBar ist immer verfügbar - keine CMI-Prüfung nötig
+
+        // Prüfe ob aktiv
+        if (!plugin.getTitleUpdateManager().hasActiveUpdates(player)) {
+            String message = plugin.getMessageManager().getMessage("plotcheck_live_already_disabled");
+            if (message == null) {
+                message = "§ePlot-Info Updates sind bereits deaktiviert!";
+            }
+            player.sendMessage(message);
+            return true;
+        }
+
+        // Stoppe Updates
+        try {
+            if (plugin.getTitleUpdateManager().stopUpdates(player)) {
+                String message = plugin.getMessageManager().getMessage("plotcheck_live_disabled");
+                if (message == null) {
+                    message = "§aPlot-Info Updates deaktiviert! Die ActionBar wurde zurückgesetzt.";
+                }
+                player.sendMessage(message);
+                
+                if (plugin.getConfigManager() != null && plugin.getConfigManager().isDebugEnabled() && plugin.getDebugLogger() != null) {
+                    plugin.getDebugLogger().debug("Plot-Info Updates für Spieler %s deaktiviert", player.getName());
+                }
+            } else {
+                player.sendMessage("§cFehler beim Deaktivieren der Plot-Info Updates!");
+            }
+        } catch (Exception e) {
+            player.sendMessage("§cEin Fehler ist beim Deaktivieren aufgetreten: " + e.getMessage());
+            plugin.getLogger().warning("Fehler in PlotCheckCommand (off): " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return true;
+    }
+
+    /**
+     * Standard Plot-Check Funktionalität
+     */
+    private boolean executeStandardCheck(Player player, String[] args) {
         // Prüfe ob Spieler auf einem Plot ist
         Plot plot = PlotSquaredIntegration.getPlayerPlot(player);
         if (plot == null) {
@@ -123,12 +244,12 @@ public class PlotCheckCommand implements SubcommandExecutor {
 
     @Override
     public String getDescription() {
-        return "Zeigt Informationen über den Plot-Besitzer";
+        return "Zeigt Plot-Informationen oder aktiviert/deaktiviert Live-Updates (on/off nur Admin)";
     }
 
     @Override
     public String getUsage() {
-        return "/plotaddon check [-v]";
+        return "/plotaddon check [on|off (Admin)|-v]";
     }
 
     /**

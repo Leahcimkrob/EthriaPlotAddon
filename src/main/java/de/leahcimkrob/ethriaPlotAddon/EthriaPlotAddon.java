@@ -10,6 +10,7 @@ import de.leahcimkrob.ethriaPlotAddon.util.EntityCounter;
 import de.leahcimkrob.ethriaPlotAddon.util.EntityGroupManager;
 import de.leahcimkrob.ethriaPlotAddon.util.PermissionManager;
 import de.leahcimkrob.ethriaPlotAddon.util.PlotCountTabCompleter;
+import de.leahcimkrob.ethriaPlotAddon.util.TitleUpdateManager;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.EntityType;
@@ -28,6 +29,7 @@ public class EthriaPlotAddon extends JavaPlugin {
     private MessageManager messageManager;
     private DebugLogger debugLogger;
     private SubcommandManager subcommandManager;
+    private TitleUpdateManager titleUpdateManager;
 
     @Override
     public void onEnable() {
@@ -45,6 +47,9 @@ public class EthriaPlotAddon extends JavaPlugin {
 
         // Initialisiere Subcommand Manager
         subcommandManager = new SubcommandManager(this);
+
+        // Initialisiere Title Update Manager
+        titleUpdateManager = new TitleUpdateManager(this);
 
         // Setze Help-Command nach Initialisierung
         subcommandManager.setHelpCommand();
@@ -78,6 +83,11 @@ public class EthriaPlotAddon extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        // Cleanup Title Update Manager
+        if (titleUpdateManager != null) {
+            titleUpdateManager.shutdown();
+        }
+
         // Plugin shutdown logic
         getLogger().info(messageManager.getMessage("plugin_disabled"));
     }
@@ -212,5 +222,12 @@ public class EthriaPlotAddon extends JavaPlugin {
      */
     public DebugLogger getDebugLogger() {
         return debugLogger;
+    }
+
+    /**
+     * Getter für TitleUpdateManager
+     */
+    public TitleUpdateManager getTitleUpdateManager() {
+        return titleUpdateManager;
     }
 }

@@ -79,4 +79,12 @@ public class ConfigManager {
         return config.getBoolean("settings.debug_enabled", false);
     }
 
+    // ActionBar Live-Update Einstellungen
+    public int getActionBarUpdateInterval() {
+        return config.getInt("settings.actionbar_update_interval", 5);
+    }
+
+    public boolean shouldActionBarAutoHide() {
+        return config.getBoolean("settings.actionbar_auto_hide", true);
+    }
 }

@@ -35,4 +35,10 @@ settings:
   # Debug-Modus für detaillierte Plot-Grenz-Informationen
   debug_boundaries: false
 
+  # ActionBar Update-Intervall in Sekunden (für Live-Updates)
+  actionbar_update_interval: 5
+
+  # ActionBar automatisch verstecken wenn Spieler das Plot verlässt
+  actionbar_auto_hide: true
+
 

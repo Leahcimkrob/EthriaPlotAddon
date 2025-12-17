@@ -69,6 +69,9 @@ public class PlotCountTabCompleter implements TabCompleter {
                 if ("count".startsWith(args[0].toLowerCase())) {
                     subcommands.add("count");
                 }
+                if ("check".startsWith(args[0].toLowerCase()) && PermissionManager.canCheckPlots(player)) {
+                    subcommands.add("check");
+                }
                 if ("help".startsWith(args[0].toLowerCase())) {
                     subcommands.add("help");
                 }
@@ -79,6 +82,26 @@ public class PlotCountTabCompleter implements TabCompleter {
             } else if (args.length == 2 && args[0].equalsIgnoreCase("count")) {
                 // Second argument for count subcommand: entities
                 return getEntityCompletions(player, args[1]);
+            } else if (args.length == 2 && args[0].equalsIgnoreCase("check")) {
+                // Tab-Completion für check command: on, off (nur Admins), -v (alle)
+                List<String> options = new ArrayList<>();
+
+                // on/off nur für Admins
+                if (PermissionManager.hasAdminPermission(player)) {
+                    if ("on".startsWith(args[1].toLowerCase())) {
+                        options.add("on");
+                    }
+                    if ("off".startsWith(args[1].toLowerCase())) {
+                        options.add("off");
+                    }
+                }
+
+                // -v für alle mit check-Permission
+                if ("-v".startsWith(args[1].toLowerCase())) {
+                    options.add("-v");
+                }
+
+                return options;
             }
         }
 

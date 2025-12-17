@@ -29,9 +29,10 @@ public class SubcommandManager {
         // Count-Command
         registerSubcommand("count", new CountCommand(plugin));
 
-        // PlotCheck-Command
+        // PlotCheck-Command (mit on/off Parametern)
         registerSubcommand("check", new PlotCheckCommand(plugin));
         registerSubcommand("plotcheck", new PlotCheckCommand(plugin)); // Alias
+
 
         // Reload-Command
         registerSubcommand("reload", new ReloadCommand(plugin));

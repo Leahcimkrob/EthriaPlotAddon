@@ -63,34 +63,19 @@ public class MessageManager {
             plugin.getLogger().info("Language directory erstellt: " + created + " - " + langDir.getAbsolutePath());
         }
 
-        // Prüfe ob existierende Datei veraltet ist (für entities.yml)
-        boolean needsUpdate = false;
-        if (langFile.exists() && fileName.equals("entities.yml")) {
-            FileConfiguration existingConfig = YamlConfiguration.loadConfiguration(langFile);
-            Set<String> existingKeys = existingConfig.getKeys(false);
+        // Automatisches Update-System für Language-Dateien
+        boolean fileUpdated = updateLanguageFileWithDefaults(langFile, fileName);
 
-            // Prüfe ob alle erwarteten Kategorien vorhanden sind
-            String[] expectedCategories = {"animals", "mobs", "entities", "vehicles", "items", "projectiles", "groups"};
-            for (String category : expectedCategories) {
-                if (!existingKeys.contains(category)) {
-                    needsUpdate = true;
-                    plugin.getLogger().info("Entities.yml ist veraltet! Fehlende Kategorie: " + category);
-                    break;
-                }
-            }
-        }
-
-        // Kopiere Standard-Datei falls sie nicht existiert ODER veraltet ist
-        if (!langFile.exists() || needsUpdate) {
+        // Wenn Datei nicht existiert, kopiere Standard-Datei
+        if (!langFile.exists()) {
             String resourcePath = "lang/" + currentLanguage + "/" + fileName;
-            plugin.getLogger().info("Datei " + (needsUpdate ? "ist veraltet" : "existiert nicht") + ", versuche Resource zu kopieren: " + resourcePath);
+            plugin.getLogger().info("Datei existiert nicht, versuche Resource zu kopieren: " + resourcePath);
 
             InputStream resource = plugin.getResource(resourcePath);
             if (resource != null) {
                 try {
-                    // Überschreibe existierende Datei wenn veraltet
-                    plugin.saveResource(resourcePath, needsUpdate);
-                    plugin.getLogger().info("Resource erfolgreich " + (needsUpdate ? "aktualisiert" : "kopiert") + ": " + resourcePath);
+                    plugin.saveResource(resourcePath, false);
+                    plugin.getLogger().info("Resource erfolgreich kopiert: " + resourcePath);
                 } catch (Exception e) {
                     plugin.getLogger().warning("Fehler beim Kopieren der Resource: " + e.getMessage());
                     e.printStackTrace();
@@ -278,5 +263,53 @@ public class MessageManager {
     public String getGroupName(String groupType) {
         return entitiesConfig.getString("groups." + groupType.toLowerCase(), groupType);
     }
-}
 
+    /**
+     * Aktualisiert Language-Dateien automatisch mit fehlenden Werten aus der Standard-Datei
+     */
+    private boolean updateLanguageFileWithDefaults(File langFile, String fileName) {
+        if (!langFile.exists()) {
+            return false; // Datei wird später erstellt
+        }
+
+        try {
+            // Lade Default-Language-Datei aus der JAR
+            String resourcePath = "lang/" + currentLanguage + "/" + fileName;
+            InputStream defaultStream = plugin.getResource(resourcePath);
+            if (defaultStream == null) {
+                return false;
+            }
+
+            YamlConfiguration defaultConfig = YamlConfiguration.loadConfiguration(
+                new InputStreamReader(defaultStream, java.nio.charset.StandardCharsets.UTF_8)
+            );
+
+            YamlConfiguration existingConfig = YamlConfiguration.loadConfiguration(langFile);
+
+            boolean fileUpdated = false;
+
+            // Prüfe alle Schlüssel in der Default-Datei
+            for (String key : defaultConfig.getKeys(true)) {
+                if (!existingConfig.contains(key)) {
+                    // Fehlender Wert - füge ihn hinzu
+                    existingConfig.set(key, defaultConfig.get(key));
+                    fileUpdated = true;
+                    plugin.getLogger().info("Language-Datei automatisch aktualisiert: " + fileName + " -> " + key);
+                }
+            }
+
+            // Speichere Datei falls Änderungen gemacht wurden
+            if (fileUpdated) {
+                existingConfig.save(langFile);
+                plugin.getLogger().info("Language-Datei wurde automatisch mit neuen Werten aktualisiert: " + fileName);
+            }
+
+            defaultStream.close();
+            return fileUpdated;
+
+        } catch (Exception e) {
+            plugin.getLogger().warning("Fehler beim automatischen Language-Update für " + fileName + ": " + e.getMessage());
+            return false;
+        }
+    }
+}

@@ -7,7 +7,7 @@ public class PermissionManager {
 
     // === ADMIN BERECHTIGUNGEN ===
     public static boolean hasAdminPermission(Player player) {
-        return player.hasPermission("ethriaplotaddon.admin");
+        return player.hasPermission("ethriaplotaddon.count.admin");
     }
 
     // === PLOT-ZUGRIFF ===
@@ -51,6 +51,10 @@ public class PermissionManager {
                player.hasPermission("ethriaplotaddon.count.group.*");
     }
 
+    // === BASIS-BERECHTIGUNGEN ===
+    public static boolean hasBasePermission(Player player) {
+        return player.hasPermission("ethriaplotcount.use");
+    }
 
     public static boolean canReload(Player player) {
         return player.hasPermission("ethriaplotaddon.count.reload") ||
@@ -65,7 +69,7 @@ public class PermissionManager {
         return "Du benötigst eine der folgenden Berechtigungen: " +
                "ethriaplotaddon.count.entity." + entityName + ", " +
                "ethriaplotaddon.count.group." + group + " oder " +
-               "ethriaplotaddon.admin";
+               "ethriaplotaddon.count.admin";
     }
 
     public static String getPlotAccessError(Player player) {
