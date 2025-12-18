@@ -122,7 +122,7 @@ Ein leistungsstarkes Minecraft-Plugin für PlotSquared-Server mit Entity-Zählun
 
 ## 📞 Support
 
-- **Issues**: [GitHub Issues](https://github.com/Leahcimkrob/EthriaPlotAddon/en-issues)
+- **Issues**: [GitHub Issues](https://github.com/Leahcimkrob/EthriaPlotAddon/issues)
 - **Wiki**: [Documentation](https://github.com/Leahcimkrob/EthriaPlotAddon/wiki)
 
 ---
@@ -134,4 +134,5 @@ MIT License - see [LICENSE](LICENSE) file
 ---
 
 *Made with ❤️ for the Minecraft community*
+
 
