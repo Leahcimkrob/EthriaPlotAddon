@@ -28,4 +28,3 @@ dependency-reduced-pom.xml
 # Wiki-Seiten (werden separat im Wiki-Repository verwaltet)
 /wiki/
 *.md
-!README.md
