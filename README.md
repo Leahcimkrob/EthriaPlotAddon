@@ -81,7 +81,7 @@ Ein leistungsstarkes Minecraft-Plugin für PlotSquared-Server mit Entity-Zählun
 - `ethriaplotaddon.admin` - Full access + live plot updates
 - `ethriaplotaddon.count.reload` - Reload config
 
-**Full permission list**: [Wiki Permissions](https://github.com/leahcimkrob/EthriaPlotAddon/wiki/Permissions)
+**Full permission list**: [Wiki Permissions](https://github.com/leahcimkrob/EthriaPlotAddon/wiki/en-PERMISSIONS)
 
 ---
 
@@ -115,14 +115,14 @@ Ein leistungsstarkes Minecraft-Plugin für PlotSquared-Server mit Entity-Zählun
 ## 📚 Documentation
 
 - **[🏠 Wiki Home](https://github.com/leahcimkrob/EthriaPlotAddon/wiki)** - Complete documentation
-- **[📋 Commands](https://github.com/leahcimkrob/EthriaPlotAddon/wiki/Commands)** - All available commands  
-- **[🔐 Permissions](https://github.com/leahcimkrob/EthriaPlotAddon/wiki/Permissions)** - Permission system
+- **[📋 Commands](https://github.com/leahcimkrob/EthriaPlotAddon/wiki/en-Commands)** - All available commands  
+- **[🔐 Permissions](https://github.com/leahcimkrob/EthriaPlotAddon/wiki/en-Permissions)** - Permission system
 
 ---
 
 ## 📞 Support
 
-- **Issues**: [GitHub Issues](https://github.com/Leahcimkrob/EthriaPlotAddon/issues)
+- **Issues**: [GitHub Issues](https://github.com/Leahcimkrob/EthriaPlotAddon/en-issues)
 - **Wiki**: [Documentation](https://github.com/Leahcimkrob/EthriaPlotAddon/wiki)
 
 ---
@@ -134,3 +134,4 @@ MIT License - see [LICENSE](LICENSE) file
 ---
 
 *Made with ❤️ for the Minecraft community*
+
