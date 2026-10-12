@@ -28,3 +28,9 @@ dependency-reduced-pom.xml
 # Wiki-Seiten (werden separat im Wiki-Repository verwaltet)
 /wiki/
 *.md
+.m2-local/com/intellectualsites/bom/bom-newest/1.56/bom-newest-1.56.pom.lastUpdated
+.m2-local/org/apache/maven/plugins/maven-resources-plugin/3.3.1/maven-resources-plugin-3.3.1.pom.lastUpdated
+.m2/repository/org/apache/maven/plugins/maven-resources-plugin/3.3.1/maven-resources-plugin-3.3.1.pom.lastUpdated
+.run/Template Maven.run.xml
+.run/Template Maven.run.xml
+/.run
