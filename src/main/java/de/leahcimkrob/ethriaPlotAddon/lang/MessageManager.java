@@ -1,9 +1,13 @@
 package de.leahcimkrob.ethriaPlotAddon.lang;
 
-import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
 import java.io.File;
 import java.io.InputStream;
@@ -14,6 +18,7 @@ import java.util.Set;
 
 public class MessageManager {
     private final JavaPlugin plugin;
+    private final MiniMessage miniMessage = MiniMessage.miniMessage();
     private String currentLanguage;
     private FileConfiguration messagesConfig;
     private FileConfiguration entitiesConfig;
@@ -133,46 +138,127 @@ public class MessageManager {
     }
 
     public String getMessage(String key) {
+        String message = messagesConfig.getString("messages." + key, "<red>Message not found: " + key);
+        if (key.equals("prefix")) return toLegacyString(miniMessage.deserialize(message));
+        if (!isSystemMessage(key)) {
+            String prefix = messagesConfig.getString("messages.prefix", "<dark_gray>[<gold>EthriaCount</gold>]<gray> » ");
+            message = prefix + message;
+        }
+        return toLegacyString(miniMessage.deserialize(message));
+    }
+
+    public Component getComponent(String key) {
         // Spezialbehandlung für das prefix selbst
         if (key.equals("prefix")) {
-            String prefix = messagesConfig.getString("messages.prefix", "&8[&6EthriaCount&8]&7 » ");
-            return ChatColor.translateAlternateColorCodes('&', prefix);
+            return miniMessage.deserialize(messagesConfig.getString("messages.prefix", "<dark_gray>[<gold>EthriaCount</gold>]<gray> » "));
         }
 
-        String message = messagesConfig.getString("messages." + key, "&cMessage not found: " + key);
+        String message = messagesConfig.getString("messages." + key, "<red>Message not found: " + key);
 
         // Füge Prefix vor jede Nachricht hinzu (außer bei System-Nachrichten)
         if (!isSystemMessage(key)) {
             // Hardcoded Fallback falls YAML-Prefix nicht lädt
-            String prefix = messagesConfig.getString("messages.prefix", "&8[&6EthriaCount&8]&7 » ");
+            String prefix = messagesConfig.getString("messages.prefix", "<dark_gray>[<gold>EthriaCount</gold>]<gray> » ");
             message = prefix + message;
         }
 
-        return ChatColor.translateAlternateColorCodes('&', message);
+        return miniMessage.deserialize(message);
+    }
+
+    public String getRawMessage(String key) {
+        return messagesConfig.getString("messages." + key, "");
     }
 
     public String getMessage(String key, Map<String, String> replacements) {
+        String message = messagesConfig.getString("messages." + key, "<red>Message not found: " + key);
+        if (key.equals("prefix")) return toLegacyString(miniMessage.deserialize(message, resolver(replacements)));
+        if (!isSystemMessage(key)) {
+            String prefix = messagesConfig.getString("messages.prefix", "<dark_gray>[<gold>EthriaCount</gold>]<gray> » ");
+            message = prefix + message;
+        }
+        return toLegacyString(miniMessage.deserialize(message, resolver(replacements)));
+    }
+
+    private String toLegacyString(Component component) {
+        return LegacyComponentSerializer.legacySection().serialize(component);
+    }
+
+    public Component getComponent(String key, Map<String, String> replacements) {
+        return getComponent(key, replacements, true);
+    }
+
+    public Component getComponent(String key, Map<String, String> replacements, boolean withPrefix) {
         // Spezialbehandlung für das prefix selbst
         if (key.equals("prefix")) {
-            String prefix = messagesConfig.getString("messages.prefix", "&8[&6EthriaCount&8]&7 » ");
-            return ChatColor.translateAlternateColorCodes('&', prefix);
+            String prefix = messagesConfig.getString("messages.prefix", "<dark_gray>[<gold>EthriaCount</gold>]<gray> » ");
+            return miniMessage.deserialize(prefix, resolver(replacements));
         }
 
-        String message = messagesConfig.getString("messages." + key, "&cMessage not found: " + key);
+        String message = messagesConfig.getString("messages." + key, "<red>Message not found: " + key);
 
-        // Replace placeholders
-        for (Map.Entry<String, String> entry : replacements.entrySet()) {
-            message = message.replace("{" + entry.getKey() + "}", entry.getValue());
+        // Migrate legacy plot-count templates from existing user language files.
+        if (key.equals("plotinfo_plot_count_command")) {
+            message = message
+                    .replace("%plotsquared_plot_count_this%", "<plotcount>")
+                    .replace("%plotsquared_plot_count_plotwelt%", "<plotcount>")
+                    .replace("%plotsquared_allowed_plot_count%", "<allowedcount>");
+            message = normalizeLegacyFormatting(message);
         }
 
         // Füge Prefix vor jede Nachricht hinzu (außer bei System-Nachrichten)
-        if (!isSystemMessage(key)) {
-            // Hardcoded Fallback falls YAML-Prefix nicht lädt
-            String prefix = messagesConfig.getString("messages.prefix", "&8[&6EthriaCount&8]&7 » ");
+        if (withPrefix && !isSystemMessage(key)) {
+            String prefixKey = key.startsWith("plotinfo_") ? "prefix_plotinfo" : "prefix";
+            String fallbackPrefix = key.startsWith("plotinfo_")
+                    ? "<dark_gray>[<gold>PlotInfo</gold>]<gray> » "
+                    : "<dark_gray>[<gold>EthriaCount</gold>]<gray> » ";
+            String prefix = messagesConfig.getString("messages." + prefixKey,
+                    messagesConfig.getString("messages.prefix", fallbackPrefix));
             message = prefix + message;
         }
 
-        return ChatColor.translateAlternateColorCodes('&', message);
+        return miniMessage.deserialize(message, resolver(replacements));
+    }
+
+    private TagResolver resolver(Map<String, String> replacements) {
+        TagResolver.Builder builder = TagResolver.builder();
+        replacements.forEach((key, value) -> builder.resolver(Placeholder.unparsed(
+                key.toLowerCase(java.util.Locale.ROOT), value == null ? "" : value)));
+        return builder.build();
+    }
+
+    private String normalizeLegacyFormatting(String message) {
+        java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("(?i)&([0-9a-fk-or])").matcher(message);
+        StringBuffer converted = new StringBuffer();
+        while (matcher.find()) {
+            String tag = switch (matcher.group(1).toLowerCase(java.util.Locale.ROOT)) {
+                case "0" -> "black";
+                case "1" -> "dark_blue";
+                case "2" -> "dark_green";
+                case "3" -> "dark_aqua";
+                case "4" -> "dark_red";
+                case "5" -> "dark_purple";
+                case "6" -> "gold";
+                case "7" -> "gray";
+                case "8" -> "dark_gray";
+                case "9" -> "blue";
+                case "a" -> "green";
+                case "b" -> "aqua";
+                case "c" -> "red";
+                case "d" -> "light_purple";
+                case "e" -> "yellow";
+                case "f" -> "white";
+                case "k" -> "obfuscated";
+                case "l" -> "bold";
+                case "m" -> "strikethrough";
+                case "n" -> "underlined";
+                case "o" -> "italic";
+                case "r" -> "reset";
+                default -> throw new IllegalStateException();
+            };
+            matcher.appendReplacement(converted, java.util.regex.Matcher.quoteReplacement("<" + tag + ">"));
+        }
+        matcher.appendTail(converted);
+        return converted.toString();
     }
 
     public String getMessage(String key, String placeholder, String value) {
@@ -189,7 +275,9 @@ public class MessageManager {
         return key.equals("plugin_enabled") ||
                key.equals("plugin_disabled") ||
                key.equals("plotsquared_not_found") ||
-               key.equals("plotsquared_found");
+               key.equals("plotsquared_found") ||
+               key.equals("plotinfo_header") ||
+               key.equals("plotinfo_entry");
     }
 
     public String getEntityName(String entityType) {

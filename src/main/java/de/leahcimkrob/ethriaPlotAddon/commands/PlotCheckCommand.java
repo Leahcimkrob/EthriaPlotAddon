@@ -62,7 +62,7 @@ public class PlotCheckCommand implements SubcommandExecutor {
     private boolean handleLiveUpdatesOn(Player player) {
         // Prüfe ob Plugin korrekt initialisiert ist
         if (plugin.getTitleUpdateManager() == null) {
-            player.sendMessage("§cPlugin ist noch nicht vollständig geladen. Bitte versuche es später erneut.");
+            player.sendMessage(plugin.getMessageManager().getComponent("plotcheck_not_ready"));
             return true;
         }
 
@@ -72,7 +72,7 @@ public class PlotCheckCommand implements SubcommandExecutor {
         if (plugin.getTitleUpdateManager().hasActiveUpdates(player)) {
             String message = plugin.getMessageManager().getMessage("plotcheck_live_already_enabled");
             if (message == null) {
-                message = "§ePlot-Info Updates sind bereits aktiviert!";
+                message = plugin.getMessageManager().getMessage("plotcheck_live_already_enabled");
             }
             player.sendMessage(message);
             return true;
@@ -83,7 +83,7 @@ public class PlotCheckCommand implements SubcommandExecutor {
             if (plugin.getTitleUpdateManager().startUpdates(player)) {
                 String message = plugin.getMessageManager().getMessage("plotcheck_live_enabled");
                 if (message == null) {
-                    message = "§aPlot-Info Updates aktiviert! Die Plot-Informationen werden jetzt dauerhaft in der ActionBar angezeigt.";
+                    message = plugin.getMessageManager().getMessage("plotcheck_live_enabled");
                 }
                 player.sendMessage(message);
                 
@@ -91,10 +91,11 @@ public class PlotCheckCommand implements SubcommandExecutor {
                     plugin.getDebugLogger().debug("Plot-Info Updates für Spieler %s aktiviert", player.getName());
                 }
             } else {
-                player.sendMessage("§cFehler beim Aktivieren der Plot-Info Updates!");
+                player.sendMessage(plugin.getMessageManager().getComponent("plotcheck_update_error"));
             }
         } catch (Exception e) {
-            player.sendMessage("§cEin Fehler ist beim Aktivieren aufgetreten: " + e.getMessage());
+            player.sendMessage(plugin.getMessageManager().getComponent("plotcheck_update_failed",
+                    Map.of("error", e.getMessage() == null ? "unknown" : e.getMessage())));
             plugin.getLogger().warning("Fehler in PlotCheckCommand (on): " + e.getMessage());
             e.printStackTrace();
         }
@@ -108,7 +109,7 @@ public class PlotCheckCommand implements SubcommandExecutor {
     private boolean handleLiveUpdatesOff(Player player) {
         // Prüfe ob Plugin korrekt initialisiert ist
         if (plugin.getTitleUpdateManager() == null) {
-            player.sendMessage("§cPlugin ist noch nicht vollständig geladen. Bitte versuche es später erneut.");
+            player.sendMessage(plugin.getMessageManager().getComponent("plotcheck_not_ready"));
             return true;
         }
 
@@ -118,7 +119,7 @@ public class PlotCheckCommand implements SubcommandExecutor {
         if (!plugin.getTitleUpdateManager().hasActiveUpdates(player)) {
             String message = plugin.getMessageManager().getMessage("plotcheck_live_already_disabled");
             if (message == null) {
-                message = "§ePlot-Info Updates sind bereits deaktiviert!";
+                message = plugin.getMessageManager().getMessage("plotcheck_live_already_disabled");
             }
             player.sendMessage(message);
             return true;
@@ -129,7 +130,7 @@ public class PlotCheckCommand implements SubcommandExecutor {
             if (plugin.getTitleUpdateManager().stopUpdates(player)) {
                 String message = plugin.getMessageManager().getMessage("plotcheck_live_disabled");
                 if (message == null) {
-                    message = "§aPlot-Info Updates deaktiviert! Die ActionBar wurde zurückgesetzt.";
+                    message = plugin.getMessageManager().getMessage("plotcheck_live_disabled");
                 }
                 player.sendMessage(message);
                 
@@ -137,10 +138,11 @@ public class PlotCheckCommand implements SubcommandExecutor {
                     plugin.getDebugLogger().debug("Plot-Info Updates für Spieler %s deaktiviert", player.getName());
                 }
             } else {
-                player.sendMessage("§cFehler beim Deaktivieren der Plot-Info Updates!");
+                player.sendMessage(plugin.getMessageManager().getComponent("plotcheck_disable_error"));
             }
         } catch (Exception e) {
-            player.sendMessage("§cEin Fehler ist beim Deaktivieren aufgetreten: " + e.getMessage());
+            player.sendMessage(plugin.getMessageManager().getComponent("plotcheck_disable_failed",
+                    Map.of("error", e.getMessage() == null ? "unknown" : e.getMessage())));
             plugin.getLogger().warning("Fehler in PlotCheckCommand (off): " + e.getMessage());
             e.printStackTrace();
         }
@@ -168,7 +170,7 @@ public class PlotCheckCommand implements SubcommandExecutor {
         // Hole Plot-Owner
         UUID ownerUuid = plot.getOwner();
         if (ownerUuid == null) {
-            player.sendMessage("§cDieses Plot hat keinen Besitzer!");
+            player.sendMessage(plugin.getMessageManager().getComponent("plotcheck_no_owner"));
             return true;
         }
 
@@ -187,14 +189,7 @@ public class PlotCheckCommand implements SubcommandExecutor {
             replacements.put("owner", ownerName);
             replacements.put("plotId", plot.getId().toString());
 
-            String message = plugin.getMessageManager().getMessage("plotcheck_owner_online", replacements);
-            if (message == null) {
-                // Fallback falls Message nicht existiert
-                player.sendMessage(String.format("§6Plot-Info: §7Plot §e%s §7gehört §a%s §7(§aaktuell online§7)",
-                    plot.getId().toString(), ownerName));
-            } else {
-                player.sendMessage(message);
-            }
+            player.sendMessage(plugin.getMessageManager().getComponent("plotcheck_owner_online", replacements));
         } else {
             // Owner ist offline - zeige letzte Online-Zeit
             long lastSeen = owner.getLastSeen();
@@ -206,26 +201,13 @@ public class PlotCheckCommand implements SubcommandExecutor {
             if (lastSeen == 0) {
                 // Spieler war noch nie online oder unbekannt
                 replacements.put("lastSeen", "nie");
-                String message = plugin.getMessageManager().getMessage("plotcheck_owner_never", replacements);
-                if (message == null) {
-                    player.sendMessage(String.format("§6Plot-Info: §7Plot §e%s §7gehört §c%s §7(§cwar noch nie online§7)",
-                        plot.getId().toString(), ownerName));
-                } else {
-                    player.sendMessage(message);
-                }
+                player.sendMessage(plugin.getMessageManager().getComponent("plotcheck_owner_never", replacements));
             } else {
                 // Berechne Zeit seit letztem Online-Status
                 String timeAgo = formatTimeAgo(lastSeen);
                 replacements.put("lastSeen", timeAgo);
 
-                String message = plugin.getMessageManager().getMessage("plotcheck_owner_offline", replacements);
-                if (message == null) {
-                    // Fallback falls Message nicht existiert
-                    player.sendMessage(String.format("§6Plot-Info: §7Plot §e%s §7gehört §c%s §7(§czuletzt online: %s§7)",
-                        plot.getId().toString(), ownerName, timeAgo));
-                } else {
-                    player.sendMessage(message);
-                }
+                player.sendMessage(plugin.getMessageManager().getComponent("plotcheck_owner_offline", replacements));
             }
         }
 
@@ -290,22 +272,23 @@ public class PlotCheckCommand implements SubcommandExecutor {
      * Zeigt erweiterte Plot-Informationen
      */
     private void showExtendedPlotInfo(Player player, Plot plot, String ownerName) {
-        player.sendMessage("§6=== Erweiterte Plot-Informationen ===");
-        player.sendMessage("§7Plot-ID: §e" + plot.getId().toString());
-        player.sendMessage("§7Besitzer: §e" + ownerName);
-        player.sendMessage("§7Welt: §e" + plot.getWorldName());
+        player.sendMessage(plugin.getMessageManager().getComponent("plotcheck_extended_title"));
+        player.sendMessage(plugin.getMessageManager().getComponent("plotcheck_extended_id", Map.of("plotId", plot.getId().toString())));
+        player.sendMessage(plugin.getMessageManager().getComponent("plotcheck_extended_owner", Map.of("owner", ownerName)));
+        player.sendMessage(plugin.getMessageManager().getComponent("plotcheck_extended_world", Map.of("world", plot.getWorldName())));
 
         // Trusted/Added Spieler
         if (!plot.getTrusted().isEmpty() || !plot.getMembers().isEmpty()) {
-            player.sendMessage("§7Trusted/Members:");
+            player.sendMessage(plugin.getMessageManager().getComponent("plotcheck_members_title"));
 
             // Trusted Spieler
             for (UUID trustedUuid : plot.getTrusted()) {
                 OfflinePlayer trusted = Bukkit.getOfflinePlayer(trustedUuid);
                 String trustedName = trusted.getName();
                 if (trustedName != null) {
-                    String status = trusted.isOnline() ? "§aonline" : "§coffline";
-                    player.sendMessage("§7  - §e" + trustedName + " §7(trusted, " + status + "§7)");
+                    String status = trusted.isOnline() ? "<green>online" : "<red>offline";
+                    player.sendMessage(plugin.getMessageManager().getComponent("plotcheck_member",
+                            Map.of("name", trustedName, "role", "trusted", "status", status)));
                 }
             }
 
@@ -314,15 +297,16 @@ public class PlotCheckCommand implements SubcommandExecutor {
                 OfflinePlayer member = Bukkit.getOfflinePlayer(memberUuid);
                 String memberName = member.getName();
                 if (memberName != null) {
-                    String status = member.isOnline() ? "§aonline" : "§coffline";
-                    player.sendMessage("§7  - §e" + memberName + " §7(member, " + status + "§7)");
+                    String status = member.isOnline() ? "<green>online" : "<red>offline";
+                    player.sendMessage(plugin.getMessageManager().getComponent("plotcheck_member",
+                            Map.of("name", memberName, "role", "member", "status", status)));
                 }
             }
         }
 
         // Merge-Informationen
         if (plot.isMerged()) {
-            player.sendMessage("§7Status: §6Gemergt");
+            player.sendMessage(plugin.getMessageManager().getComponent("plotcheck_merged"));
         }
     }
 }

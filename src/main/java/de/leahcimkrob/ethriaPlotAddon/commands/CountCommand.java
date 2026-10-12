@@ -7,6 +7,8 @@ import de.leahcimkrob.ethriaPlotAddon.util.EntityCounter;
 import de.leahcimkrob.ethriaPlotAddon.util.PermissionManager;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,7 +28,7 @@ public class CountCommand implements SubcommandExecutor {
     @Override
     public boolean execute(Player player, String[] args) {
         if (args.length == 0) {
-            player.sendMessage("§cUsage: /plotaddon count <entity|all>");
+            player.sendMessage(plugin.getMessageManager().getComponent("count_usage"));
             return true;
         }
 
@@ -35,7 +37,7 @@ public class CountCommand implements SubcommandExecutor {
         // Handle all/star command (nur für Admins)
         if (entityTypeStr.equals("all") || entityTypeStr.equals("*")) {
             if (!PermissionManager.hasAdminPermission(player)) {
-                player.sendMessage(plugin.getMessageManager().getMessage("no_permission"));
+                player.sendMessage(plugin.getMessageManager().getComponent("no_permission"));
                 return true;
             }
             return handleCountAllEntities(player);
@@ -95,7 +97,7 @@ public class CountCommand implements SubcommandExecutor {
 
         Plot plot = PlotSquaredIntegration.getPlayerPlot(player);
         if (plot == null) {
-            player.sendMessage(plugin.getMessageManager().getMessage("not_on_plot"));
+            player.sendMessage(plugin.getMessageManager().getComponent("not_on_plot"));
             return true;
         }
 
@@ -107,7 +109,10 @@ public class CountCommand implements SubcommandExecutor {
 
         // Prüfe Plot-Zugriff
         if (!PlotSquaredIntegration.hasPlotAccess(player, plot)) {
-            player.sendMessage(PermissionManager.getPlotAccessError(player));
+            String accessMessage = !PermissionManager.canCountOnOwnPlots(player)
+                    && !PermissionManager.canCountOnOtherPlots(player)
+                    ? "no_plot_permission" : "plot_access_denied";
+            player.sendMessage(plugin.getMessageManager().getComponent(accessMessage));
             return true;
         }
 
@@ -128,13 +133,16 @@ public class CountCommand implements SubcommandExecutor {
         } catch (IllegalArgumentException e) {
             Map<String, String> replacements = new HashMap<>();
             replacements.put("entityType", originalInput);
-            player.sendMessage(plugin.getMessageManager().getMessage("invalid_entity_type", replacements));
+            player.sendMessage(plugin.getMessageManager().getComponent("invalid_entity_type", replacements));
             return true;
         }
 
+        String entityName = plugin.getMessageManager().getEntityName(englishEntityType);
+
         // Prüfe Entity-Berechtigung
         if (!PermissionManager.canCountEntity(player, entityType)) {
-            player.sendMessage(PermissionManager.getPermissionError(player, entityType));
+            player.sendMessage(plugin.getMessageManager().getComponent("no_entity_permission",
+                    Map.of("entitytype", entityName)));
             return true;
         }
 
@@ -157,15 +165,14 @@ public class CountCommand implements SubcommandExecutor {
 
         // Zeige angemessene Zähl-Nachricht
         // Verwende deutsche Übersetzung für Anzeige (vom englischen Namen)
-        String entityName = plugin.getMessageManager().getEntityName(englishEntityType);
         Map<String, String> countingMsg = new HashMap<>();
         countingMsg.put("entityType", entityName);
 
         if (plotsToCount.size() > 1) {
             countingMsg.put("plotCount", String.valueOf(plotsToCount.size()));
-            player.sendMessage(plugin.getMessageManager().getMessage("counting_entities_large", countingMsg));
+            player.sendMessage(plugin.getMessageManager().getComponent("counting_entities_large", countingMsg));
         } else {
-            player.sendMessage(plugin.getMessageManager().getMessage("counting_entities", countingMsg));
+            player.sendMessage(plugin.getMessageManager().getComponent("counting_entities", countingMsg));
         }
 
         // Führe Zählung durch (synchron, da Entity-Zugriff Main-Thread erfordert)
@@ -190,7 +197,7 @@ public class CountCommand implements SubcommandExecutor {
 
         Plot plot = PlotSquaredIntegration.getPlayerPlot(player);
         if (plot == null) {
-            player.sendMessage(plugin.getMessageManager().getMessage("not_on_plot"));
+            player.sendMessage(plugin.getMessageManager().getComponent("not_on_plot"));
             return true;
         }
 
@@ -216,9 +223,9 @@ public class CountCommand implements SubcommandExecutor {
         if (plugin.getConfigManager().shouldIncludeMergedPlots() && plotsToCount.size() > 1) {
             Map<String, String> headerReplacements = new HashMap<>();
             headerReplacements.put("plotCount", String.valueOf(plotsToCount.size()));
-            player.sendMessage(plugin.getMessageManager().getMessage("counting_all_header_merged", headerReplacements));
+            player.sendMessage(plugin.getMessageManager().getComponent("counting_all_header_merged", headerReplacements));
         } else {
-            player.sendMessage(plugin.getMessageManager().getMessage("counting_all_header"));
+            player.sendMessage(plugin.getMessageManager().getComponent("counting_all_header"));
         }
 
         // Zähle alle Entity-Typen
@@ -250,7 +257,7 @@ public class CountCommand implements SubcommandExecutor {
 
         // Zeige Ergebnisse
         if (entityCounts.isEmpty()) {
-            player.sendMessage(plugin.getMessageManager().getMessage("counting_all_no_entities"));
+            player.sendMessage(plugin.getMessageManager().getComponent("counting_all_no_entities"));
         } else {
             // Sortiere nach Anzahl (absteigend)
             entityCounts.entrySet().stream()
@@ -260,12 +267,13 @@ public class CountCommand implements SubcommandExecutor {
                     int count = entry.getValue();
                     String deutscherName = plugin.getMessageManager().getEntityName(type.name().toLowerCase());
 
-                    sendPrefixedMessage(player, String.format("§e%s: §f%d", deutscherName, count));
+                    player.sendMessage(MiniMessage.miniMessage().deserialize("<yellow><name>: <white><count>",
+                            Placeholder.unparsed("name", deutscherName), Placeholder.unparsed("count", Integer.toString(count))));
                 });
 
             Map<String, String> totalReplacements = new HashMap<>();
             totalReplacements.put("total", String.valueOf(totalEntities));
-            player.sendMessage(plugin.getMessageManager().getMessage("counting_all_total", totalReplacements));
+            player.sendMessage(plugin.getMessageManager().getComponent("counting_all_total", totalReplacements));
         }
 
         return true;
@@ -298,15 +306,15 @@ public class CountCommand implements SubcommandExecutor {
         // Prüfe ob Limit erreicht wurde
         if (result.isLimitReached()) {
             replacements.put("limit", String.valueOf(plugin.getConfigManager().getMaxCountLimit()));
-            player.sendMessage(plugin.getMessageManager().getMessage("count_limit_reached", replacements));
+            player.sendMessage(plugin.getMessageManager().getComponent("count_limit_reached", replacements));
         }
 
         // Hauptergebnis
         if (plugin.getConfigManager().shouldIncludeMergedPlots() && plotCount > 1) {
             replacements.put("plotCount", String.valueOf(plotCount));
-            player.sendMessage(plugin.getMessageManager().getMessage("count_result_merged", replacements));
+            player.sendMessage(plugin.getMessageManager().getComponent("count_result_merged", replacements));
         } else {
-            player.sendMessage(plugin.getMessageManager().getMessage("count_result", replacements));
+            player.sendMessage(plugin.getMessageManager().getComponent("count_result", replacements));
         }
 
         // Detaillierte Aufschlüsselung (nur wenn interessant)
@@ -318,15 +326,11 @@ public class CountCommand implements SubcommandExecutor {
             detailReplacements.put("invisible", String.valueOf(result.getInvisibleCount()));
             detailReplacements.put("fixed", String.valueOf(result.getFixedCount()));
 
-            player.sendMessage(plugin.getMessageManager().getMessage("count_result_detailed", detailReplacements));
+            player.sendMessage(plugin.getMessageManager().getComponent("count_result_detailed", detailReplacements));
         }
     }
 
     /**
      * Sendet eine Nachricht mit Prefix an den Player
      */
-    private void sendPrefixedMessage(Player player, String message) {
-        String prefix = plugin.getMessageManager().getMessage("prefix");
-        player.sendMessage(prefix + org.bukkit.ChatColor.translateAlternateColorCodes('&', message));
-    }
 }

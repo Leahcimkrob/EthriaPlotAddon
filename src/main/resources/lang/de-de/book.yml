@@ -1,0 +1,14 @@
+# Buchgestaltung für Plotinfo. Alle Textfelder unterstützen MiniMessage.
+# Verfügbare Platzhalter: <owner>, <executor>, <note>.
+book:
+  title: "<gold>Plotinfo"
+  author: "EthriaPlotAddon"
+  details_page: |-
+    <gold>Plotinhaber:</gold>
+    <green><owner></green>
+    <gold>Ausführender:</gold>
+    <red><executor></red>
+  note_page: |-
+    <gold>Bemerkung:</gold>
+    <black><note></black>
+  note_continuation_page: "<white><note></white>"

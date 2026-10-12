@@ -3,6 +3,8 @@ package de.leahcimkrob.ethriaPlotAddon;
 import com.plotsquared.core.plot.Plot;
 import de.leahcimkrob.ethriaPlotAddon.commands.SubcommandManager;
 import de.leahcimkrob.ethriaPlotAddon.config.ConfigManager;
+import de.leahcimkrob.ethriaPlotAddon.config.BookConfigManager;
+import de.leahcimkrob.ethriaPlotAddon.database.DatabaseManager;
 import de.leahcimkrob.ethriaPlotAddon.integration.PlotSquaredIntegration;
 import de.leahcimkrob.ethriaPlotAddon.lang.MessageManager;
 import de.leahcimkrob.ethriaPlotAddon.util.DebugLogger;
@@ -26,10 +28,12 @@ import java.util.Set;
 
 public class EthriaPlotAddon extends JavaPlugin {
     private ConfigManager configManager;
+    private BookConfigManager bookConfigManager;
     private MessageManager messageManager;
     private DebugLogger debugLogger;
     private SubcommandManager subcommandManager;
     private TitleUpdateManager titleUpdateManager;
+    private DatabaseManager databaseManager;
 
     @Override
     public void onEnable() {
@@ -38,6 +42,17 @@ public class EthriaPlotAddon extends JavaPlugin {
 
         // Initialisiere Config Manager
         configManager = new ConfigManager(this);
+        bookConfigManager = new BookConfigManager(this, configManager.getLanguage());
+
+        databaseManager = new DatabaseManager(this);
+        try {
+            databaseManager.initialize();
+        } catch (Exception exception) {
+            getLogger().severe("Datenbank konnte nicht initialisiert werden: " + exception.getMessage());
+            exception.printStackTrace();
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
 
         // Initialisiere Message Manager mit der konfigurierten Sprache
         messageManager = new MessageManager(this, configManager.getLanguage());
@@ -83,6 +98,9 @@ public class EthriaPlotAddon extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (databaseManager != null) {
+            databaseManager.close();
+        }
         // Cleanup Title Update Manager
         if (titleUpdateManager != null) {
             titleUpdateManager.shutdown();
@@ -147,12 +165,13 @@ public class EthriaPlotAddon extends JavaPlugin {
     public void reloadConfigs() {
         configManager.reloadConfig();
         messageManager.setLanguage(configManager.getLanguage());
+        bookConfigManager.setLanguage(configManager.getLanguage());
 
         // Re-register aliases after config reload
         registerCommandAliases();
     }
 
-    private void registerCommandAliases() {
+    public void registerCommandAliases() {
         try {
             Set<String> aliases = configManager.getAllAliases();
             if (!aliases.isEmpty()) {
@@ -211,6 +230,14 @@ public class EthriaPlotAddon extends JavaPlugin {
     // Getter für andere Klassen
     public ConfigManager getConfigManager() {
         return configManager;
+    }
+
+    public BookConfigManager getBookConfigManager() {
+        return bookConfigManager;
+    }
+
+    public DatabaseManager getDatabaseManager() {
+        return databaseManager;
     }
 
     public MessageManager getMessageManager() {

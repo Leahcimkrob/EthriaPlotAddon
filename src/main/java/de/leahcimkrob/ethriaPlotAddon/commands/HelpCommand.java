@@ -4,6 +4,7 @@ import de.leahcimkrob.ethriaPlotAddon.EthriaPlotAddon;
 import de.leahcimkrob.ethriaPlotAddon.util.EntityGroupManager;
 import de.leahcimkrob.ethriaPlotAddon.util.PermissionManager;
 import org.bukkit.entity.Player;
+import java.util.HashMap;
 
 import java.util.Map;
 import java.util.Set;
@@ -23,7 +24,7 @@ public class HelpCommand implements SubcommandExecutor {
 
     @Override
     public boolean execute(Player player, String[] args) {
-        player.sendMessage("§6=== EthriaPlotAddon Help ===");
+        player.sendMessage(plugin.getMessageManager().getComponent("help_title"));
 
         // Zeige nur verfügbare Befehle
         boolean hasAnyPermission = false;
@@ -40,15 +41,14 @@ public class HelpCommand implements SubcommandExecutor {
                 continue;
             }
 
-            String usage = executor.getUsage().replace("/plotaddon", "§e/plotaddon");
-            String description = "§7- " + executor.getDescription();
-            player.sendMessage(usage + " " + description);
+            player.sendMessage(plugin.getMessageManager().getComponent("help_command",
+                    Map.of("usage", executor.getUsage(), "description", executor.getDescription())));
             hasAnyPermission = true;
         }
 
         // Zeige auch plotcount Alias wenn Count-Berechtigung vorhanden
         if (subcommandManager.hasPermissionForSubcommand("count", player)) {
-            player.sendMessage("§e/plotcount <entity> §7- Alias für /plotaddon count");
+            player.sendMessage(plugin.getMessageManager().getComponent("help_plotcount_alias"));
         }
 
         // Zeige konfigurierte Aliases (nur die für verfügbare Befehle)
@@ -66,16 +66,17 @@ public class HelpCommand implements SubcommandExecutor {
 
                 if (showAlias) {
                     if (!hasAliases) {
-                        player.sendMessage("§7Verfügbare Aliases:");
+                        player.sendMessage(plugin.getMessageManager().getComponent("help_aliases"));
                         hasAliases = true;
                     }
-                    player.sendMessage("§e/" + alias + " §7- Alias für /plotaddon " + target);
+                    player.sendMessage(plugin.getMessageManager().getComponent("help_alias",
+                            Map.of("alias", alias, "target", target)));
                 }
             }
         }
 
         // Help ist immer verfügbar
-        player.sendMessage("§e/plotaddon help §7- Zeige diese Hilfe");
+        player.sendMessage(plugin.getMessageManager().getComponent("help_generic"));
 
         // Zeige verfügbare Entity-Gruppen wenn Count-Berechtigung vorhanden
         if (subcommandManager.hasPermissionForSubcommand("count", player)) {
@@ -84,7 +85,7 @@ public class HelpCommand implements SubcommandExecutor {
 
         // Wenn keine Berechtigung für irgendetwas vorhanden ist
         if (!hasAnyPermission) {
-            player.sendMessage("§cKeine Berechtigungen für verfügbare Befehle gefunden.");
+            player.sendMessage(plugin.getMessageManager().getComponent("help_no_commands"));
         }
 
         return true;
@@ -119,8 +120,9 @@ public class HelpCommand implements SubcommandExecutor {
         }
 
         if (!availableGroups.isEmpty()) {
-            player.sendMessage("§7Verfügbare Entity-Gruppen: §f" + availableGroups);
-            player.sendMessage("§7Tipp: Nutze Tab-Completion für verfügbare Entities!");
+            player.sendMessage(plugin.getMessageManager().getComponent("help_groups",
+                    Map.of("groups", availableGroups.toString())));
+            player.sendMessage(plugin.getMessageManager().getComponent("help_tab_tip"));
         }
     }
 }

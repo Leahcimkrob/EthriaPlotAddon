@@ -18,13 +18,9 @@ public class ReloadCommand implements SubcommandExecutor {
     @Override
     public boolean execute(Player player, String[] args) {
         // Config neu laden
-        plugin.getConfigManager().reloadConfig();
-        plugin.getMessageManager().setLanguage(plugin.getConfigManager().getLanguage());
+        plugin.reloadConfigs();
 
-        // Re-register aliases after config reload
-        // Hier könnten wir eine Methode zum Neuladen der Aliases aufrufen
-
-        player.sendMessage(plugin.getMessageManager().getMessage("config_reloaded"));
+        player.sendMessage(plugin.getMessageManager().getComponent("config_reloaded"));
 
         // Debug-Nachricht falls Debug aktiviert ist
         if (plugin.getConfigManager().isDebugEnabled()) {

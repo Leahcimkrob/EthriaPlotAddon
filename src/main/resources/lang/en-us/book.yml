@@ -1,0 +1,14 @@
+# Book appearance for plot info. All text fields support MiniMessage.
+# Available placeholders: <owner>, <executor>, <note>.
+book:
+  title: "<gold>Plot info"
+  author: "EthriaPlotAddon"
+  details_page: |-
+    <gold>Plot owner:</gold>
+    <white><owner></white>
+    <gold>Executor:</gold>
+    <white><executor></white>
+  note_page: |-
+    <gold>Note:</gold>
+    <black><note></black>
+  note_continuation_page: "<white><note></white>"

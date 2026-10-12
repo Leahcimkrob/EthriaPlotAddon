@@ -1,7 +1,7 @@
 name: EthriaPlotAddon
 version: ${project.version}
 main: de.leahcimkrob.ethriaPlotAddon.EthriaPlotAddon
-api-version: '1.21'
+api-version: '26.2'
 description: Plugin zum Zählen von Entities auf Plots
 author: leahcimkrob
 website: https://github.com/leahcimkrob/EthriaPlotCount
@@ -13,6 +13,7 @@ commands:
 
 depend:
   - PlotSquared
+softdepend:
 
 
 permissions:
@@ -26,6 +27,22 @@ permissions:
       ethriaplotaddon.count.own: true
       ethriaplotaddon.count.other: true
       ethriaplotaddon.count.reload: true
+      ethriaplotaddon.admin.convert: false
+      ethriaplotaddon.plotinfo.edit: true
+      ethriaplotaddon.plotinfo.list: true
+      ethriaplotaddon.plotcheck.use: true
+
+  # === SUPPORT-BERECHTIGUNGEN ===
+  ethriaplotaddon.support:
+    description: Support-Rechte zum Prüfen und Zählen auf Plots ohne Bearbeitungs- oder Adminfunktionen
+    default: false
+    children:
+      ethriaplotaddon.count.group.*: true
+      ethriaplotaddon.count.entity.*: true
+      ethriaplotaddon.count.own: true
+      ethriaplotaddon.count.other: true
+      ethriaplotaddon.count.reload: true
+      ethriaplotaddon.plotinfo.view: true
       ethriaplotaddon.plotcheck.use: true
 
   # === PLOT-ZUGRIFF ===
@@ -41,6 +58,24 @@ permissions:
   ethriaplotaddon.count.reload:
     description: Darf die Plugin-Konfiguration neu laden
     default: op
+
+  ethriaplotaddon.admin.convert:
+    description: Darf Daten zwischen SQLite und MySQL übertragen
+    default: false
+
+  ethriaplotaddon.plotinfo.view:
+    description: Darf Plotinfos anzeigen
+    default: false
+
+  ethriaplotaddon.plotinfo.edit:
+    description: Darf Plotinfos anzeigen und Bemerkungen bearbeiten
+    default: op
+    children:
+      ethriaplotaddon.plotinfo.view: true
+
+  ethriaplotaddon.plotinfo.list:
+    description: Darf Plotinfos von Spielern auflisten
+    default: false
 
   # === GRUPPEN-BERECHTIGUNGEN ===
   ethriaplotaddon.count.group.*:

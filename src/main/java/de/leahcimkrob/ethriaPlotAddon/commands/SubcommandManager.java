@@ -37,6 +37,12 @@ public class SubcommandManager {
         // Reload-Command
         registerSubcommand("reload", new ReloadCommand(plugin));
 
+        // Datenbankkonvertierung
+        registerSubcommand("convert", new ConvertCommand(plugin));
+
+        // Plot-Info zum aktuellen Plot anzeigen und Einträge bearbeiten
+        registerSubcommand("plotinfo", new PlotInfoCommand(plugin));
+
         // Help-Command (wird nach der Initialisierung registriert)
         // Wird in setHelpCommand() gesetzt
     }

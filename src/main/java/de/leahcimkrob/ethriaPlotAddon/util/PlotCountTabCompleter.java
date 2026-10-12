@@ -57,6 +57,20 @@ public class PlotCountTabCompleter implements TabCompleter {
                 if (args.length == 1) {
                     return getEntityCompletions(player, args[0]);
                 }
+            } else if ("plotinfo".equals(targetSubcommand)
+                    && (player.hasPermission("ethriaplotaddon.plotinfo.view")
+                    || player.hasPermission("ethriaplotaddon.plotinfo.edit")
+                    || player.hasPermission("ethriaplotaddon.plotinfo.list")) && args.length == 1) {
+                List<String> options = new ArrayList<>();
+                if (player.hasPermission("ethriaplotaddon.plotinfo.edit")) {
+                    options.add("add");
+                }
+                if (player.hasPermission("ethriaplotaddon.plotinfo.list")) options.add("list");
+                return options.stream().filter(option -> option.startsWith(args[0].toLowerCase())).toList();
+            } else if ("plotinfo".equals(targetSubcommand) && args.length == 2
+                    && args[0].equalsIgnoreCase("list")
+                    && player.hasPermission("ethriaplotaddon.plotinfo.list")) {
+                return getOnlinePlayerCompletions(args[1]);
             }
             return new ArrayList<>();
         }
@@ -77,6 +91,16 @@ public class PlotCountTabCompleter implements TabCompleter {
                 }
                 if (PermissionManager.canReload(player) && "reload".startsWith(args[0].toLowerCase())) {
                     subcommands.add("reload");
+                }
+                if (player.hasPermission("ethriaplotaddon.admin.convert")
+                        && "convert".startsWith(args[0].toLowerCase())) {
+                    subcommands.add("convert");
+                }
+                if ((player.hasPermission("ethriaplotaddon.plotinfo.view")
+                        || player.hasPermission("ethriaplotaddon.plotinfo.edit")
+                        || player.hasPermission("ethriaplotaddon.plotinfo.list"))
+                        && "plotinfo".startsWith(args[0].toLowerCase())) {
+                    subcommands.add("plotinfo");
                 }
                 return subcommands;
             } else if (args.length == 2 && args[0].equalsIgnoreCase("count")) {
@@ -102,10 +126,44 @@ public class PlotCountTabCompleter implements TabCompleter {
                 }
 
                 return options;
+            } else if (args.length == 2 && args[0].equalsIgnoreCase("convert")
+                    && player.hasPermission("ethriaplotaddon.admin.convert")) {
+                return List.of("sqlite", "mysql").stream()
+                        .filter(type -> type.startsWith(args[1].toLowerCase()))
+                        .toList();
+            } else if (args.length == 3 && args[0].equalsIgnoreCase("convert")
+                    && player.hasPermission("ethriaplotaddon.admin.convert")) {
+                String source = args[1].toLowerCase();
+                return List.of("sqlite", "mysql").stream()
+                        .filter(type -> !type.equals(source) && type.startsWith(args[2].toLowerCase()))
+                        .toList();
+            } else if (args.length == 2 && args[0].equalsIgnoreCase("plotinfo")
+                    && (player.hasPermission("ethriaplotaddon.plotinfo.view")
+                    || player.hasPermission("ethriaplotaddon.plotinfo.edit")
+                    || player.hasPermission("ethriaplotaddon.plotinfo.list"))) {
+                List<String> options = new ArrayList<>();
+                if (player.hasPermission("ethriaplotaddon.plotinfo.edit")) {
+                    options.add("add");
+                }
+                if (player.hasPermission("ethriaplotaddon.plotinfo.list")) options.add("list");
+                return options.stream().filter(option -> option.startsWith(args[1].toLowerCase())).toList();
+            } else if (args.length == 3 && args[0].equalsIgnoreCase("plotinfo")
+                    && args[1].equalsIgnoreCase("list")
+                    && player.hasPermission("ethriaplotaddon.plotinfo.list")) {
+                return getOnlinePlayerCompletions(args[2]);
             }
         }
 
         return new ArrayList<>();
+    }
+
+    private List<String> getOnlinePlayerCompletions(String partialName) {
+        String prefix = partialName.toLowerCase(Locale.ROOT);
+        return org.bukkit.Bukkit.getOnlinePlayers().stream()
+                .map(Player::getName)
+                .filter(name -> name.toLowerCase(Locale.ROOT).startsWith(prefix))
+                .sorted(String.CASE_INSENSITIVE_ORDER)
+                .toList();
     }
 
     private List<String> getEntityCompletions(Player player, String partialName) {
@@ -239,6 +297,11 @@ public class PlotCountTabCompleter implements TabCompleter {
 
         // Reload-Berechtigung
         if (PermissionManager.canReload(player)) {
+            return true;
+        }
+
+        if (player.hasPermission("ethriaplotaddon.plotinfo.view")
+                || player.hasPermission("ethriaplotaddon.plotinfo.edit")) {
             return true;
         }
 
