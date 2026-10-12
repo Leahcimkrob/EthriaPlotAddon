@@ -1,9 +1,9 @@
 # EthriaPlotAddon
 
-[![Download](https://img.shields.io/badge/Download-v1.3-brightgreen.svg)](https://github.com/leahcimkrob/EthriaPlotAddon/releases/tag/v1.3)
-[![Java](https://img.shields.io/badge/Java-21+-orange.svg)](https://openjdk.java.net/projects/jdk/21/)
-[![Paper](https://img.shields.io/badge/Paper-1.21+-blue.svg)](https://papermc.io/)
-[![PlotSquared](https://img.shields.io/badge/PlotSquared-7.5.9+-green.svg)](https://github.com/IntellectualSites/PlotSquared)
+[![Version](https://img.shields.io/badge/Version-1.4-brightgreen.svg)](https://github.com/leahcimkrob/EthriaPlotAddon/releases)
+[![Java](https://img.shields.io/badge/Java-25+-orange.svg)](https://openjdk.org/projects/jdk/25/)
+[![Paper](https://img.shields.io/badge/Paper-26.2+-blue.svg)](https://papermc.io/)
+[![PlotSquared](https://img.shields.io/badge/PlotSquared-7.6+-green.svg)](https://github.com/IntellectualSites/PlotSquared)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 Ein leistungsstarkes Minecraft-Plugin für PlotSquared-Server mit Entity-Zählung, Plot-Management und Admin-Tools.
@@ -26,6 +26,8 @@ Ein leistungsstarkes Minecraft-Plugin für PlotSquared-Server mit Entity-Zählun
 - **Stop Updates**: `/plotaddon check off` - Disable live plot updates (Admin-only)
 - **Extended Info**: `/plotaddon check -v` - Shows trusted players and merge info
 - **Real-time Status**: "Online now" vs "Last seen 2 days ago"
+- **Plot Info**: `/plotinfo` - View plot records, clickable locations, and full notes in a book
+- **Plot Info Storage**: SQLite or MySQL database support
 
 ### 🔧 Administration
 - **Configuration Reload**: `/plotaddon reload`
@@ -88,15 +90,22 @@ Ein leistungsstarkes Minecraft-Plugin für PlotSquared-Server mit Entity-Zählun
 ## 🔗 Dependencies
 
 ### Required
-- **Java 21+** - Required runtime
-- **Paper 1.21+** - Server software  
-- **PlotSquared 7.5.9+** - Plot management
+- **Java 25+** - Required runtime
+- **Paper 26.2+** - Server software  
+- **PlotSquared 7.6+** - Plot management
 
 *No additional dependencies needed - uses vanilla Minecraft ActionBar*
 
 ---
 
-## 🌟 New in v1.3
+## 🌟 New in v1.4
+
+- ✅ **Plot Info Records** - Store and view notes linked to plots
+- ✅ **SQLite / MySQL** - Choose a local SQLite database or MySQL storage
+- ✅ **Plot Info Admin Tools** - Edit entries and list notes with `/plotinfo list`
+- ✅ **Clickable Plot Info** - Teleport to recorded locations and open full notes in a book
+
+## 🌟 Previously added in v1.3
 
 - ✅ **Live Plot Updates** - Real-time plot info in ActionBar (Vanilla Minecraft)
 - ✅ **Auto-Config Updates** - Automatically adds new config values on plugin update
