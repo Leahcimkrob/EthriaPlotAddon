@@ -139,28 +139,21 @@ public class MessageManager {
 
     public String getMessage(String key) {
         String message = messagesConfig.getString("messages." + key, "<red>Message not found: " + key);
-        if (key.equals("prefix")) return toLegacyString(miniMessage.deserialize(message));
-        if (!isSystemMessage(key)) {
-            String prefix = messagesConfig.getString("messages.prefix", "<dark_gray>[<gold>EthriaCount</gold>]<gray> » ");
-            message = prefix + message;
-        }
+        if (key.equals("prefix") || key.equals("prefix_plotinfo")) return toLegacyString(miniMessage.deserialize(message));
+        message = addPrefix(key, message);
         return toLegacyString(miniMessage.deserialize(message));
     }
 
     public Component getComponent(String key) {
         // Spezialbehandlung für das prefix selbst
-        if (key.equals("prefix")) {
-            return miniMessage.deserialize(messagesConfig.getString("messages.prefix", "<dark_gray>[<gold>EthriaCount</gold>]<gray> » "));
+        if (key.equals("prefix") || key.equals("prefix_plotinfo")) {
+            String prefixKey = key.equals("prefix_plotinfo") ? "prefix_plotinfo" : "prefix";
+            return miniMessage.deserialize(messagesConfig.getString("messages." + prefixKey,
+                    "<dark_gray>[<gold>EthriaCount</gold>]<gray> » "));
         }
 
         String message = messagesConfig.getString("messages." + key, "<red>Message not found: " + key);
-
-        // Füge Prefix vor jede Nachricht hinzu (außer bei System-Nachrichten)
-        if (!isSystemMessage(key)) {
-            // Hardcoded Fallback falls YAML-Prefix nicht lädt
-            String prefix = messagesConfig.getString("messages.prefix", "<dark_gray>[<gold>EthriaCount</gold>]<gray> » ");
-            message = prefix + message;
-        }
+        message = addPrefix(key, message);
 
         return miniMessage.deserialize(message);
     }
@@ -171,11 +164,8 @@ public class MessageManager {
 
     public String getMessage(String key, Map<String, String> replacements) {
         String message = messagesConfig.getString("messages." + key, "<red>Message not found: " + key);
-        if (key.equals("prefix")) return toLegacyString(miniMessage.deserialize(message, resolver(replacements)));
-        if (!isSystemMessage(key)) {
-            String prefix = messagesConfig.getString("messages.prefix", "<dark_gray>[<gold>EthriaCount</gold>]<gray> » ");
-            message = prefix + message;
-        }
+        if (key.equals("prefix") || key.equals("prefix_plotinfo")) return toLegacyString(miniMessage.deserialize(message, resolver(replacements)));
+        message = addPrefix(key, message);
         return toLegacyString(miniMessage.deserialize(message, resolver(replacements)));
     }
 
@@ -189,8 +179,9 @@ public class MessageManager {
 
     public Component getComponent(String key, Map<String, String> replacements, boolean withPrefix) {
         // Spezialbehandlung für das prefix selbst
-        if (key.equals("prefix")) {
-            String prefix = messagesConfig.getString("messages.prefix", "<dark_gray>[<gold>EthriaCount</gold>]<gray> » ");
+        if (key.equals("prefix") || key.equals("prefix_plotinfo")) {
+            String prefixKey = key.equals("prefix_plotinfo") ? "prefix_plotinfo" : "prefix";
+            String prefix = messagesConfig.getString("messages." + prefixKey, "<dark_gray>[<gold>EthriaCount</gold>]<gray> » ");
             return miniMessage.deserialize(prefix, resolver(replacements));
         }
 
@@ -206,15 +197,7 @@ public class MessageManager {
         }
 
         // Füge Prefix vor jede Nachricht hinzu (außer bei System-Nachrichten)
-        if (withPrefix && !isSystemMessage(key)) {
-            String prefixKey = key.startsWith("plotinfo_") ? "prefix_plotinfo" : "prefix";
-            String fallbackPrefix = key.startsWith("plotinfo_")
-                    ? "<dark_gray>[<gold>PlotInfo</gold>]<gray> » "
-                    : "<dark_gray>[<gold>EthriaCount</gold>]<gray> » ";
-            String prefix = messagesConfig.getString("messages." + prefixKey,
-                    messagesConfig.getString("messages.prefix", fallbackPrefix));
-            message = prefix + message;
-        }
+        if (withPrefix) message = addPrefix(key, message);
 
         return miniMessage.deserialize(message, resolver(replacements));
     }
@@ -278,6 +261,18 @@ public class MessageManager {
                key.equals("plotsquared_found") ||
                key.equals("plotinfo_header") ||
                key.equals("plotinfo_entry");
+    }
+
+    private String addPrefix(String key, String message) {
+        if (isSystemMessage(key)) return message;
+        boolean plotInfo = key.startsWith("plotinfo_");
+        String prefixKey = plotInfo ? "prefix_plotinfo" : "prefix";
+        String fallbackPrefix = plotInfo
+                ? "<dark_gray>[<gold>PlotInfo</gold>]<gray> » "
+                : "<dark_gray>[<gold>EthriaCount</gold>]<gray> » ";
+        String prefix = messagesConfig.getString("messages." + prefixKey,
+                messagesConfig.getString("messages.prefix", fallbackPrefix));
+        return prefix + message;
     }
 
     public String getEntityName(String entityType) {

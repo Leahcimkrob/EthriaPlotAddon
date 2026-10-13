@@ -42,11 +42,11 @@ messages:
   plotinfo_delete_failed: "<red>Plotinfo-Eintrag konnte nicht gelöscht werden."
   plotinfo_edit_dialog_title: "Bemerkung bearbeiten"
   plotinfo_edit_dialog_label: "Bemerkung (max. 256 Zeichen)"
-  plotinfo_entry: "<number>. <click:run_command:'/tppos {x} {y} {z}'><hover:show_text:'Klicken zum Teleportieren'><aqua><location></aqua></hover></click><click:run_command:'/plotaddon plotinfo book {entryId}'><hover:show_text:'Klicken, um die vollständige Bemerkung zu lesen'><yellow> | <note></yellow></hover></click> | <gray><date>"
+  plotinfo_entry: "<number>. <click:run_command:'/plotaddon plotinfo tp {entryId}'><hover:show_text:'Klicken zum Teleportieren'><aqua><location></aqua></hover></click><click:run_command:'/plotaddon plotinfo book {entryId}'><hover:show_text:'Klicken, um die vollständige Bemerkung zu lesen'><yellow> | <note></yellow></hover></click> | <gray><date>"
   plotinfo_list_usage: "<red>Verwendung: /plotaddon plotinfo list <spieler>"
   plotinfo_list_none: "<yellow>Für <spieler> gibt es in Welt <world> keine Plotinfos mit Bemerkung."
   plotinfo_list_header: "<gold>Plotinfo-Einträge für <spieler> (<count>):" #zusätzlicher Placeholder <world>
-  plotinfo_list_entry: "<number>. <dark_gray>[<plotid>]</dark_gray> <click:run_command:'/tppos {x} {y} {z}'><hover:show_text:'Klicken zum Teleportieren'><aqua><location></aqua></hover></click><click:run_command:'/plotaddon plotinfo book {entryId}'><hover:show_text:'Klicken, um die vollständige Bemerkung zu lesen'><yellow> | <note></yellow></hover></click> | <gray><date>"
+  plotinfo_list_entry: "<number>. <dark_gray>[<plotid>]</dark_gray> <click:run_command:'/plotaddon plotinfo tp {entryId}'><hover:show_text:'Klicken zum Teleportieren'><aqua><location></aqua></hover></click><click:run_command:'/plotaddon plotinfo book {entryId}'><hover:show_text:'Klicken, um die vollständige Bemerkung zu lesen'><yellow> | <note></yellow></hover></click> | <gray><date>"
 
   count_usage: "<red>Verwendung: /plotaddon count [entity|all]"
   help_title: "<gold>=== EthriaPlotAddon Hilfe ==="

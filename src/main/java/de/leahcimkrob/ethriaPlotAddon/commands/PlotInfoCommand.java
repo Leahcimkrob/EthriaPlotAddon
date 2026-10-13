@@ -88,6 +88,7 @@ public final class PlotInfoCommand implements SubcommandExecutor, Listener {
     @Override
     public boolean execute(Player player, String[] args) {
         if (args.length > 0 && "book".equalsIgnoreCase(args[0])) return openRecordBook(player, args);
+        if (args.length > 0 && "tp".equalsIgnoreCase(args[0])) return teleportToRecord(player, args);
         if (args.length > 0 && "list".equalsIgnoreCase(args[0])) return listPlayerRecords(player, args);
         if (args.length > 0 && "add".equalsIgnoreCase(args[0])) return addRecord(player, args);
         if (args.length > 0 && "edit".equalsIgnoreCase(args[0])) return editRecord(player, args);
@@ -246,9 +247,6 @@ public final class PlotInfoCommand implements SubcommandExecutor, Listener {
                 : "";
         String messageKey = includePlotId ? "plotinfo_list_entry" : "plotinfo_entry";
         String template = controls + plugin.getMessageManager().getRawMessage(messageKey)
-                .replace("{x}", Integer.toString(record.x()))
-                .replace("{y}", Integer.toString(record.y()))
-                .replace("{z}", Integer.toString(record.z()))
                 .replace("{entryId}", Long.toString(entry.id()))
                 .replace("{plotId}", record.plotX() + ";" + record.plotY());
         player.sendMessage(MiniMessage.miniMessage().deserialize(template,
@@ -262,6 +260,40 @@ public final class PlotInfoCommand implements SubcommandExecutor, Listener {
     private String truncateForChat(String value, int maxLength) {
         if (value.length() <= maxLength) return value;
         return value.substring(0, maxLength - 1) + "…";
+    }
+
+    private boolean teleportToRecord(Player player, String[] args) {
+        if (args.length != 2) return true;
+        try {
+            long id = Long.parseLong(args[1]);
+            PlotRecordEntry entry = plugin.getDatabaseManager().getPlotRecordEntry(id);
+            if (entry == null) {
+                player.sendMessage(plugin.getMessageManager().getComponent("plotinfo_record_missing"));
+                return true;
+            }
+
+            PlotRecord record = entry.record();
+            Plot currentPlot = canonicalPlot(
+                    de.leahcimkrob.ethriaPlotAddon.integration.PlotSquaredIntegration.getPlayerPlot(player));
+            if (!canAccessRecord(player, currentPlot, record)) {
+                player.sendMessage(plugin.getMessageManager().getComponent("plotinfo_record_denied"));
+                return true;
+            }
+
+            org.bukkit.World world = Bukkit.getWorld(record.world());
+            if (world == null) {
+                player.sendMessage(plugin.getMessageManager().getComponent("plotinfo_wrong_world"));
+                return true;
+            }
+            player.teleport(new org.bukkit.Location(world, record.x() + 0.5, record.y(), record.z() + 0.5));
+        } catch (NumberFormatException exception) {
+            player.sendMessage(plugin.getMessageManager().getComponent("plotinfo_record_missing"));
+        } catch (SQLException exception) {
+            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Plotinfo konnte nicht geladen werden.", exception);
+            player.sendMessage(plugin.getMessageManager().getComponent("plotinfo_load_failed",
+                    java.util.Map.of("error", exception.getMessage() == null ? "SQL error" : exception.getMessage())));
+        }
+        return true;
     }
 
     private boolean openRecordBook(Player player, String[] args) {

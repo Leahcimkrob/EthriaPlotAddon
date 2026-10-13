@@ -42,11 +42,11 @@ messages:
   plotinfo_delete_failed: "<red>Could not delete the plot info entry."
   plotinfo_edit_dialog_title: "Edit note"
   plotinfo_edit_dialog_label:t "Note (max. 256 characters)"
-  plotinfo_entry: "<number>. <click:run_command:'/tppos {x} {y} {z}'><hover:show_text:'Click to teleport'><aqua><location></aqua></hover></click><click:run_command:'/plotaddon plotinfo book {entryId}'><hover:show_text:'Click to read the full note'><yellow> | <note></yellow></hover></click> | <gray><date>"
+  plotinfo_entry: "<number>. <click:run_command:'/plotaddon plotinfo tp {entryId}'><hover:show_text:'Click to teleport'><aqua><location></aqua></hover></click><click:run_command:'/plotaddon plotinfo book {entryId}'><hover:show_text:'Click to read the full note'><yellow> | <note></yellow></hover></click> | <gray><date>"
   plotinfo_list_usage: "<red>Usage: /plotaddon plotinfo list <player>"
   plotinfo_list_none: "<yellow>No plot info notes found for <spieler> in world <world>."
   plotinfo_list_header: "<gold>Plot info entries for <spieler> (<count>):"  #additional Placeholder <world>
-  plotinfo_list_entry: "<number>. <dark_gray>[<plotid>]</dark_gray> <click:run_command:'/tppos {x} {y} {z}'><hover:show_text:'Click to teleport'><aqua><location></aqua></hover></click><click:run_command:'/plotaddon plotinfo book {entryId}'><hover:show_text:'Click to read the full note'><yellow> | <note></yellow></hover></click> | <gray><date>"
+  plotinfo_list_entry: "<number>. <dark_gray>[<plotid>]</dark_gray> <click:run_command:'/plotaddon plotinfo tp {entryId}'><hover:show_text:'Click to teleport'><aqua><location></aqua></hover></click><click:run_command:'/plotaddon plotinfo book {entryId}'><hover:show_text:'Click to read the full note'><yellow> | <note></yellow></hover></click> | <gray><date>"
 
   count_usage: "<red>Usage: /plotaddon count [entity|all]"
   help_title: "<gold>=== EthriaPlotAddon Help ==="
