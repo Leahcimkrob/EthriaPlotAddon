@@ -1,6 +1,6 @@
 # EthriaPlotAddon
 
-[![Version](https://img.shields.io/badge/Version-1.4-brightgreen.svg)](https://github.com/leahcimkrob/EthriaPlotAddon/releases)
+[![Version](https://img.shields.io/badge/Version-1.41-brightgreen.svg)](https://github.com/leahcimkrob/EthriaPlotAddon/releases)
 [![Java](https://img.shields.io/badge/Java-25+-orange.svg)](https://openjdk.org/projects/jdk/25/)
 [![Paper](https://img.shields.io/badge/Paper-26.2+-blue.svg)](https://papermc.io/)
 [![PlotSquared](https://img.shields.io/badge/PlotSquared-7.6+-green.svg)](https://github.com/IntellectualSites/PlotSquared)
