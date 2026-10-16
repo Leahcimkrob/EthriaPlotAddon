@@ -1,6 +1,6 @@
 # EthriaPlotAddon
 
-[![Version](https://img.shields.io/badge/Version-1.41-brightgreen.svg)](https://github.com/leahcimkrob/EthriaPlotAddon/releases)
+[![Version](https://img.shields.io/badge/Version-1.5-brightgreen.svg)](https://github.com/leahcimkrob/EthriaPlotAddon/releases)
 [![Java](https://img.shields.io/badge/Java-25+-orange.svg)](https://openjdk.org/projects/jdk/25/)
 [![Paper](https://img.shields.io/badge/Paper-26.2+-blue.svg)](https://papermc.io/)
 [![PlotSquared](https://img.shields.io/badge/PlotSquared-7.6+-green.svg)](https://github.com/IntellectualSites/PlotSquared)
@@ -59,11 +59,14 @@ Ein leistungsstarkes Minecraft-Plugin für PlotSquared-Server mit Entity-Zählun
 /plotcount kuh                  # Count cows (German name)
 /plotaddon count all            # All entities (Admin only)
 
-# Plot information  
+# Plot information
 /plotaddon check                # Show plot owner
 /plotaddon check -v             # Extended plot info
 /plotaddon check on             # Enable live plot updates (Admin-only)
 /plotaddon check off            # Disable live plot updates (Admin-only)
+/plotaddon plotinfo             # View notes for your current plot
+/plotaddon plotinfo add         # Add a note to your current plot
+/plotaddon plotinfo list Alex   # List a player's notes (permission required)
 
 # Administration
 /plotaddon reload               # Reload config
@@ -76,12 +79,15 @@ Ein leistungsstarkes Minecraft-Plugin für PlotSquared-Server mit Entity-Zählun
 
 ### Player
 - `ethriaplotaddon.count.own` - Count on own plots
-- `ethriaplotaddon.count.group.animals` - Count animals  
+- `ethriaplotaddon.count.group.animals` - Count animals
 - `ethriaplotaddon.plotcheck.use` - Check plot info
+- `ethriaplotaddon.plotinfo.view` - View plot info for owned plots
 
 ### Admin
 - `ethriaplotaddon.admin` - Full access + live plot updates
 - `ethriaplotaddon.count.reload` - Reload config
+- `ethriaplotaddon.plotinfo.edit` - Add, edit, and view plot info entries
+- `ethriaplotaddon.plotinfo.list` - List plot info entries for a player
 
 **Full permission list**: [Wiki Permissions](https://github.com/leahcimkrob/EthriaPlotAddon/wiki/en-PERMISSIONS)
 
@@ -97,6 +103,13 @@ Ein leistungsstarkes Minecraft-Plugin für PlotSquared-Server mit Entity-Zählun
 *No additional dependencies needed - uses vanilla Minecraft ActionBar*
 
 ---
+
+## 🌟 New in v1.5
+
+- ✅ **Plot Info Change Notifications** - Owners are notified on join about new or edited notes on their plots
+- ✅ **Seen Tracking** - Each plot info entry records whether its change notification was shown
+- ✅ **Grouped Change List** - Notifications list only changed entries and group them by world
+- ✅ **Database Migration** - Existing SQLite and MySQL databases gain the `seen` column automatically
 
 ## 🌟 New in v1.4
 
