@@ -28,6 +28,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 
@@ -35,6 +36,9 @@ import java.sql.SQLException;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -47,11 +51,72 @@ public final class PlotInfoCommand implements SubcommandExecutor, Listener {
 
     private final EthriaPlotAddon plugin;
     private final ConcurrentHashMap<UUID, Long> pendingDeletes = new ConcurrentHashMap<>();
+    private final Set<UUID> joinNotificationsInProgress = ConcurrentHashMap.newKeySet();
 
     public PlotInfoCommand(EthriaPlotAddon plugin) {
         this.plugin = plugin;
         Bukkit.getPluginManager().registerEvents(this, plugin);
         PlotSquared.get().getEventDispatcher().registerListener(this);
+    }
+
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        Player player = event.getPlayer();
+        UUID ownerId = player.getUniqueId();
+        if (!joinNotificationsInProgress.add(ownerId)) return;
+        String server = serverName();
+
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            List<PlotRecordEntry> unseen;
+            try {
+                unseen = plugin.getDatabaseManager().getUnseenPlotInfoEntries(server, ownerId);
+            } catch (SQLException exception) {
+                plugin.getLogger().log(java.util.logging.Level.SEVERE,
+                        "Ungesehene Plotinfo-Änderungen konnten nicht geladen werden.", exception);
+                joinNotificationsInProgress.remove(ownerId);
+                return;
+            }
+            if (unseen.isEmpty()) {
+                joinNotificationsInProgress.remove(ownerId);
+                return;
+            }
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                if (!player.isOnline()) {
+                    joinNotificationsInProgress.remove(ownerId);
+                    return;
+                }
+                try {
+                    player.sendMessage(plugin.getMessageManager().getComponent("plotinfo_changes_header",
+                            Map.of("count", Integer.toString(unseen.size()))));
+                    Map<String, List<PlotRecordEntry>> byWorld = new LinkedHashMap<>();
+                    for (PlotRecordEntry entry : unseen) {
+                        byWorld.computeIfAbsent(entry.record().world(), ignored -> new ArrayList<>()).add(entry);
+                    }
+                    for (Map.Entry<String, List<PlotRecordEntry>> worldEntries : byWorld.entrySet()) {
+                        player.sendMessage(plugin.getMessageManager().getComponent("plotinfo_changes_world",
+                                Map.of("world", worldEntries.getKey())));
+                        List<PlotRecordEntry> entries = worldEntries.getValue();
+                        for (int i = 0; i < entries.size(); i++) {
+                            sendRecord(player, i + 1, entries.get(i), false, true);
+                        }
+                    }
+                    List<Long> ids = unseen.stream().map(PlotRecordEntry::id).toList();
+                    Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+                        try {
+                            plugin.getDatabaseManager().markPlotInfoEntriesSeen(ownerId, ids);
+                        } catch (SQLException exception) {
+                            plugin.getLogger().log(java.util.logging.Level.SEVERE,
+                                    "Plotinfo-Änderungen konnten nicht als gesehen markiert werden.", exception);
+                        } finally {
+                            joinNotificationsInProgress.remove(ownerId);
+                        }
+                    });
+                } catch (RuntimeException exception) {
+                    joinNotificationsInProgress.remove(ownerId);
+                    throw exception;
+                }
+            });
+        });
     }
 
     @Subscribe
@@ -249,7 +314,8 @@ public final class PlotInfoCommand implements SubcommandExecutor, Listener {
         String template = controls + plugin.getMessageManager().getRawMessage(messageKey)
                 .replace("{entryId}", Long.toString(entry.id()))
                 .replace("{plotId}", record.plotX() + ";" + record.plotY());
-        player.sendMessage(MiniMessage.miniMessage().deserialize(template,
+        String prefix = plugin.getMessageManager().getRawMessage("prefix_plotinfo");
+        player.sendMessage(MiniMessage.miniMessage().deserialize(prefix + template,
                 Placeholder.unparsed("number", Integer.toString(number)),
                 Placeholder.unparsed("plotid", record.plotX() + ";" + record.plotY()),
                 Placeholder.unparsed("location", location),
@@ -273,9 +339,9 @@ public final class PlotInfoCommand implements SubcommandExecutor, Listener {
             }
 
             PlotRecord record = entry.record();
-            Plot currentPlot = canonicalPlot(
-                    de.leahcimkrob.ethriaPlotAddon.integration.PlotSquaredIntegration.getPlayerPlot(player));
-            if (!canAccessRecord(player, currentPlot, record)) {
+            boolean canTeleport = isCurrentServer(record.server())
+                    && (player.hasPermission(EDIT_PERMISSION) || player.getUniqueId().equals(record.ownerId()));
+            if (!canTeleport) {
                 player.sendMessage(plugin.getMessageManager().getComponent("plotinfo_record_denied"));
                 return true;
             }
@@ -436,7 +502,7 @@ public final class PlotInfoCommand implements SubcommandExecutor, Listener {
             if (args.length == 2) {
                 openEditDialog(player, entry);
             } else {
-                plugin.getDatabaseManager().updateNote(id, join(args, 2));
+                plugin.getDatabaseManager().updateNote(id, join(args, 2), player.getUniqueId());
                 player.sendMessage(plugin.getMessageManager().getComponent("plotinfo_updated"));
             }
         } catch (SQLException | IllegalArgumentException exception) {
@@ -475,7 +541,7 @@ public final class PlotInfoCommand implements SubcommandExecutor, Listener {
                 player.sendMessage(plugin.getMessageManager().getComponent("plotinfo_record_denied"));
                 return;
             }
-            plugin.getDatabaseManager().updateNote(id, note == null ? "" : note.strip());
+            plugin.getDatabaseManager().updateNote(id, note == null ? "" : note.strip(), player.getUniqueId());
             player.sendMessage(plugin.getMessageManager().getComponent("plotinfo_updated"));
         } catch (SQLException | IllegalArgumentException exception) {
             player.sendMessage(plugin.getMessageManager().getComponent("plotinfo_update_failed"));

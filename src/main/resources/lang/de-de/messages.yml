@@ -13,6 +13,8 @@ messages:
   convert_invalid_types: "<red>Erlaubt sind sqlite und mysql; Quelle und Ziel müssen verschieden sein."
   convert_success: "<green>Daten wurden von <yellow><from><green> nach <yellow><to><green> übertragen."
   convert_failed: "<red>Datenbankkonvertierung fehlgeschlagen: <error>"
+
+  # Plotinfo
   plotinfo_usage: "<red>Verwendung: <usage>"
   plotinfo_wrong_world: "<red>Plot nicht gefunden. Die Plot-ID muss zu deiner aktuellen Welt gehören."
   plotinfo_own_only: "<red>Du kannst nur Plotinfos deiner eigenen Plots ansehen."
@@ -46,8 +48,11 @@ messages:
   plotinfo_list_usage: "<red>Verwendung: /plotaddon plotinfo list <spieler>"
   plotinfo_list_none: "<yellow>Für <spieler> gibt es in Welt <world> keine Plotinfos mit Bemerkung."
   plotinfo_list_header: "<gold>Plotinfo-Einträge für <spieler> (<count>):" #zusätzlicher Placeholder <world>
+  plotinfo_changes_header: "<gold>Während deiner Abwesenheit wurden Plotinfos geändert (<count> Einträge):"
+  plotinfo_changes_world: "<yellow>Welt <world>:"
   plotinfo_list_entry: "<number>. <dark_gray>[<plotid>]</dark_gray> <click:run_command:'/plotaddon plotinfo tp {entryId}'><hover:show_text:'Klicken zum Teleportieren'><aqua><location></aqua></hover></click><click:run_command:'/plotaddon plotinfo book {entryId}'><hover:show_text:'Klicken, um die vollständige Bemerkung zu lesen'><yellow> | <note></yellow></hover></click> | <gray><date>"
 
+  # Plot Count
   count_usage: "<red>Verwendung: /plotaddon count [entity|all]"
   help_title: "<gold>=== EthriaPlotAddon Hilfe ==="
   help_aliases: "<gray>Verfügbare Aliases:"
@@ -59,6 +64,8 @@ messages:
   help_no_commands: "<red>Keine Berechtigungen für verfügbare Befehle gefunden."
   help_groups: "<gray>Verfügbare Entity-Gruppen: <white><groups>"
   help_tab_tip: "<gray>Tipp: Nutze Tab-Completion für verfügbare Entities!"
+
+  # Plotcheck
   plotcheck_not_ready: "<red>Plugin ist noch nicht vollständig geladen. Bitte versuche es später erneut."
   plotcheck_update_error: "<red>Fehler beim Aktivieren der Plot-Info Updates!"
   plotcheck_update_failed: "<red>Ein Fehler ist beim Aktivieren aufgetreten: <error>"

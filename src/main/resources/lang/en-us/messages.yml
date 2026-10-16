@@ -46,6 +46,8 @@ messages:
   plotinfo_list_usage: "<red>Usage: /plotaddon plotinfo list <player>"
   plotinfo_list_none: "<yellow>No plot info notes found for <spieler> in world <world>."
   plotinfo_list_header: "<gold>Plot info entries for <spieler> (<count>):"  #additional Placeholder <world>
+  plotinfo_changes_header: "<gold>Plot info changed while you were away (<count> entries):"
+  plotinfo_changes_world: "<yellow>World <world>:"
   plotinfo_list_entry: "<number>. <dark_gray>[<plotid>]</dark_gray> <click:run_command:'/plotaddon plotinfo tp {entryId}'><hover:show_text:'Click to teleport'><aqua><location></aqua></hover></click><click:run_command:'/plotaddon plotinfo book {entryId}'><hover:show_text:'Click to read the full note'><yellow> | <note></yellow></hover></click> | <gray><date>"
 
   count_usage: "<red>Usage: /plotaddon count [entity|all]"

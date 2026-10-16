@@ -6,7 +6,7 @@
 
     <groupId>de.leahcimkrob</groupId>
     <artifactId>EthriaPlotAddon</artifactId>
-    <version>1.41</version>
+    <version>1.5</version>
     <packaging>jar</packaging>
 
     <name>EthriaPlotAddon</name>

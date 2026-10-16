@@ -97,6 +97,7 @@ public final class DatabaseManager implements AutoCloseable {
                 + "z " + coordinateType + " NOT NULL,"
                 + "recorded_at " + (databaseType == DatabaseType.SQLITE ? "TEXT" : "TIMESTAMP") + " NOT NULL,"
                 + "note TEXT,"
+                + "seen BOOLEAN NOT NULL DEFAULT TRUE,"
                 + "FOREIGN KEY(owner_id) REFERENCES plot_users(user_uuid),"
                 + "FOREIGN KEY(teamler_id) REFERENCES plot_users(user_uuid)"
                 + ")" + (databaseType == DatabaseType.MYSQL ? " ENGINE=InnoDB" : "");
@@ -104,14 +105,23 @@ public final class DatabaseManager implements AutoCloseable {
             statement.execute(table);
             ensureColumn("plot_info", "owner_id", uuidType);
             ensureColumn("plot_info", "teamler_id", uuidType);
+            ensureColumn("plot_info", "seen", "BOOLEAN NOT NULL DEFAULT TRUE");
             migrateLegacyUsers();
             if (databaseType == DatabaseType.SQLITE) {
                 statement.execute("CREATE INDEX IF NOT EXISTS idx_plot_info_lookup "
                         + "ON plot_info(server, world, plot_x, plot_y, recorded_at)");
+                statement.execute("CREATE INDEX IF NOT EXISTS idx_plot_info_unseen "
+                        + "ON plot_info(server, owner_id, seen)");
             } else {
                 try {
                     statement.execute("CREATE INDEX idx_plot_info_lookup "
                             + "ON plot_info(server, world, plot_x, plot_y, recorded_at)");
+                } catch (SQLException exception) {
+                    if (!indexAlreadyExists(exception)) throw exception;
+                }
+                try {
+                    statement.execute("CREATE INDEX idx_plot_info_unseen "
+                            + "ON plot_info(server, owner_id, seen)");
                 } catch (SQLException exception) {
                     if (!indexAlreadyExists(exception)) throw exception;
                 }
@@ -218,9 +228,9 @@ public final class DatabaseManager implements AutoCloseable {
         if (record.ownerId() != null) upsertUser(record.ownerId(), record.ownerName());
         boolean legacyOwner = hasColumn("plot_info", "plot_owner");
         boolean legacyExecutor = hasColumn("plot_info", "executor");
-        String columns = "server, world, plot_x, plot_y, owner_id, teamler_id, x, y, z, recorded_at, note"
+        String columns = "server, world, plot_x, plot_y, owner_id, teamler_id, x, y, z, recorded_at, note, seen"
                 + (legacyOwner ? ", plot_owner" : "") + (legacyExecutor ? ", executor" : "");
-        int parameterCount = 11 + (legacyOwner ? 1 : 0) + (legacyExecutor ? 1 : 0);
+        int parameterCount = 12 + (legacyOwner ? 1 : 0) + (legacyExecutor ? 1 : 0);
         String sql = "INSERT INTO plot_info (" + columns + ") VALUES ("
                 + String.join(", ", java.util.Collections.nCopies(parameterCount, "?")) + ")";
         try (PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -238,7 +248,8 @@ public final class DatabaseManager implements AutoCloseable {
             else statement.setTimestamp(10, Timestamp.from(record.recordedAt()));
             if (record.note() == null) statement.setNull(11, Types.VARCHAR);
             else statement.setString(11, record.note());
-            int next = 12;
+            statement.setBoolean(12, record.ownerId() == null || record.ownerId().equals(record.teamlerId()));
+            int next = 13;
             if (legacyOwner) statement.setString(next++, record.ownerName());
             if (legacyExecutor) statement.setString(next, record.teamlerName());
             statement.executeUpdate();
@@ -248,14 +259,16 @@ public final class DatabaseManager implements AutoCloseable {
         }
     }
 
-    public synchronized void updateNote(long id, String note) throws SQLException {
+    public synchronized void updateNote(long id, String note, UUID editorId) throws SQLException {
         ensureOpen();
         if (note != null && note.length() > 256) throw new IllegalArgumentException("Note cannot exceed 256 characters.");
         try (PreparedStatement statement = connection.prepareStatement(
-                "UPDATE plot_info SET note = ? WHERE id = ?")) {
+                "UPDATE plot_info SET note = ?, seen = CASE WHEN owner_id = ? THEN TRUE ELSE FALSE END WHERE id = ?")) {
             if (note == null) statement.setNull(1, Types.VARCHAR);
             else statement.setString(1, note);
-            statement.setLong(2, id);
+            if (editorId == null) statement.setNull(2, Types.VARCHAR);
+            else statement.setString(2, editorId.toString());
+            statement.setLong(3, id);
             statement.executeUpdate();
         }
     }
@@ -327,6 +340,39 @@ public final class DatabaseManager implements AutoCloseable {
         return entries;
     }
 
+    /** Returns changed, not-yet-seen note records for an owner on this server, across all worlds. */
+    public synchronized java.util.List<PlotRecordEntry> getUnseenPlotInfoEntries(String server, UUID ownerId)
+            throws SQLException {
+        ensureOpen();
+        java.util.List<PlotRecordEntry> entries = new java.util.ArrayList<>();
+        String sql = recordSelectSql()
+                + "FROM plot_info LEFT JOIN plot_users owner_user ON owner_user.user_uuid = plot_info.owner_id "
+                + "LEFT JOIN plot_users teamler_user ON teamler_user.user_uuid = plot_info.teamler_id "
+                + "WHERE server = ? AND owner_id = ? AND seen = FALSE AND note IS NOT NULL AND note <> '' "
+                + "ORDER BY world ASC, plot_x ASC, plot_y ASC, recorded_at ASC, id ASC";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, server);
+            statement.setString(2, ownerId.toString());
+            try (ResultSet rows = statement.executeQuery()) {
+                while (rows.next()) entries.add(readRecord(rows));
+            }
+        }
+        return entries;
+    }
+
+    /** Marks only the delivered records belonging to the player as seen. */
+    public synchronized void markPlotInfoEntriesSeen(UUID ownerId, List<Long> entryIds) throws SQLException {
+        ensureOpen();
+        if (entryIds.isEmpty()) return;
+        String placeholders = String.join(", ", java.util.Collections.nCopies(entryIds.size(), "?"));
+        try (PreparedStatement statement = connection.prepareStatement(
+                "UPDATE plot_info SET seen = TRUE WHERE owner_id = ? AND id IN (" + placeholders + ")")) {
+            statement.setString(1, ownerId.toString());
+            for (int i = 0; i < entryIds.size(); i++) statement.setLong(i + 2, entryIds.get(i));
+            statement.executeUpdate();
+        }
+    }
+
     public synchronized PlotRecordEntry getPlotRecordEntry(long id) throws SQLException {
         ensureOpen();
         String sql = recordSelectSql()
@@ -394,22 +440,22 @@ public final class DatabaseManager implements AutoCloseable {
                         while (users.next()) upsertUser(UUID.fromString(users.getString("user_uuid")),
                                 users.getString("user_name"));
                     }
-                    String sourceSql = "SELECT server, world, plot_x, plot_y, owner_id, teamler_id, x, y, z, recorded_at, note"
+                    String sourceSql = "SELECT server, world, plot_x, plot_y, owner_id, teamler_id, x, y, z, recorded_at, note, seen"
                             + (sourceLegacyOwner ? ", plot_owner" : "")
                             + (sourceLegacyExecutor ? ", executor" : "") + " FROM plot_info";
                     try (Statement query = source.createStatement(); ResultSet rows = query.executeQuery(sourceSql)) {
                         boolean legacyOwner = hasColumn("plot_info", "plot_owner");
                         boolean legacyExecutor = hasColumn("plot_info", "executor");
-                        String columns = "server, world, plot_x, plot_y, owner_id, teamler_id, x, y, z, recorded_at, note"
+                        String columns = "server, world, plot_x, plot_y, owner_id, teamler_id, x, y, z, recorded_at, note, seen"
                                 + (legacyOwner ? ", plot_owner" : "") + (legacyExecutor ? ", executor" : "");
-                        int count = 11 + (legacyOwner ? 1 : 0) + (legacyExecutor ? 1 : 0);
+                        int count = 12 + (legacyOwner ? 1 : 0) + (legacyExecutor ? 1 : 0);
                         String insertSql = "INSERT INTO plot_info (" + columns + ") VALUES ("
                                 + String.join(", ", java.util.Collections.nCopies(count, "?")) + ")";
                         try (PreparedStatement insert = target.prepareStatement(insertSql)) {
                             int batchCount = 0;
                             while (rows.next()) {
-                                for (int i = 1; i <= 11; i++) insert.setObject(i, rows.getObject(i));
-                                int next = 12;
+                                for (int i = 1; i <= 12; i++) insert.setObject(i, rows.getObject(i));
+                                int next = 13;
                                 String ownerName = null;
                                 String teamlerName = null;
                                 UUID ownerId = parseUuid(rows.getString("owner_id"));
