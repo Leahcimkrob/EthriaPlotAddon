@@ -1,6 +1,6 @@
 # EthriaPlotAddon
 
-[![Version](https://img.shields.io/badge/Version-1.5-brightgreen.svg)](https://github.com/leahcimkrob/EthriaPlotAddon/releases)
+[![Version](https://img.shields.io/badge/Version-1.6-brightgreen.svg)](https://github.com/leahcimkrob/EthriaPlotAddon/releases)
 [![Java](https://img.shields.io/badge/Java-25+-orange.svg)](https://openjdk.org/projects/jdk/25/)
 [![Paper](https://img.shields.io/badge/Paper-26.2+-blue.svg)](https://papermc.io/)
 [![PlotSquared](https://img.shields.io/badge/PlotSquared-7.6+-green.svg)](https://github.com/IntellectualSites/PlotSquared)
@@ -28,6 +28,7 @@ Ein leistungsstarkes Minecraft-Plugin für PlotSquared-Server mit Entity-Zählun
 - **Real-time Status**: "Online now" vs "Last seen 2 days ago"
 - **Plot Info**: `/plotinfo` - View plot records, clickable locations, and full notes in a book
 - **Plot Info Storage**: SQLite or MySQL database support
+- **Plot Check Storage**: Local SQLite or shared MySQL storage for player online history
 
 ### 🔧 Administration
 - **Configuration Reload**: `/plotaddon reload`
@@ -103,6 +104,10 @@ Ein leistungsstarkes Minecraft-Plugin für PlotSquared-Server mit Entity-Zählun
 *No additional dependencies needed - uses vanilla Minecraft ActionBar*
 
 ---
+
+## 🌟 New in v1.6
+
+- ✅ **Plot Check Offline Times** - The plugin stores last-online data locally or in a shared database, allowing Plot Check to show a player's status across servers because Paper's player history is server-specific.
 
 ## 🌟 New in v1.5
 
