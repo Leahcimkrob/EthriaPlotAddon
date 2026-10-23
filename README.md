@@ -98,10 +98,11 @@ Ein leistungsstarkes Minecraft-Plugin für PlotSquared-Server mit Entity-Zählun
 
 ### Required
 - **Java 25+** - Required runtime
-- **Paper 26.2+** - Server software  
+- **Paper 26.2+** - Server software
 - **PlotSquared 7.6+** - Plot management
+- **PlaceholderAPI** - Required plugin dependency
 
-*No additional dependencies needed - uses vanilla Minecraft ActionBar*
+*ActionBar rendering uses vanilla Minecraft; CMI is not needed.*
 
 ---
 
