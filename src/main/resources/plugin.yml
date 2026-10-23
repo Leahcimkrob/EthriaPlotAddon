@@ -13,7 +13,7 @@ commands:
 
 depend:
   - PlotSquared
-softdepend:
+  - PlaceholderAPI
 
 
 permissions:
@@ -28,6 +28,7 @@ permissions:
       ethriaplotaddon.count.other: true
       ethriaplotaddon.count.reload: true
       ethriaplotaddon.admin.convert: false
+      ethriaplotaddon.admin.databaseimport: true
       ethriaplotaddon.plotinfo.edit: true
       ethriaplotaddon.plotinfo.list: true
       ethriaplotaddon.plotcheck.use: true
@@ -62,6 +63,10 @@ permissions:
   ethriaplotaddon.admin.convert:
     description: Darf Daten zwischen SQLite und MySQL übertragen
     default: false
+
+  ethriaplotaddon.admin.databaseimport:
+    description: Darf Plotinfo- und Plotcheck-Datenbanken zusammenführen
+    default: op
 
   ethriaplotaddon.plotinfo.view:
     description: Darf Plotinfos anzeigen

@@ -39,6 +39,8 @@ public class SubcommandManager {
 
         // Datenbankkonvertierung
         registerSubcommand("convert", new ConvertCommand(plugin));
+        registerSubcommand("plotinfoimport", new PlotInfoImportCommand(plugin));
+        registerSubcommand("plotcheckimport", new PlotCheckImportCommand(plugin));
 
         // Plot-Info zum aktuellen Plot anzeigen und Einträge bearbeiten
         registerSubcommand("plotinfo", new PlotInfoCommand(plugin));

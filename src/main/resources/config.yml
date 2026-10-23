@@ -4,21 +4,8 @@
 # Sprache für Nachrichten (de-de, en-us)
 language: "de-de"
 
-# Datenbank für Plot-Einträge
-# Änderungen an Verbindungseinstellungen benötigen einen Serverneustart.
-# SQLite verwendet den durch Paper bereitgestellten JDBC-Treiber.
-database:
-  server_id: auto # auto bezieht den Namen vom Server; alternativ eine feste ID eintragen
-  type: sqlite # sqlite oder mysql
-  sqlite:
-    file: plot-data.db
-  mysql:
-    host: localhost
-    port: 3306
-    database: ethriaplotaddon
-    username: ethriaplotaddon
-    password: ""
-    useSSL: false
+# Datenbankvorlagen liegen in den Plugin-Ressourcen unter database/ und werden beim
+# ersten Start nach plugins/EthriaPlotAddon/database/ kopiert.
 
 # Command-Aliases (Alias -> Subcommand)
 # Format: alias: "subcommand"

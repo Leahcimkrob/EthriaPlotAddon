@@ -1,0 +1,20 @@
+# Separate database for network-wide PlotCheck last-online data.
+# Set type to mysql on every Paper server for network-wide status.
+# SQLite only shares status on this one server installation.
+type: sqlite
+
+# Empfohlen: pro Paper-Server einen festen Netzwerknamen eintragen (z. B. Event oder Citybuild).
+# "auto" verwendet Bukkit Server.getName(); PlaceholderAPI kann %server_name% liefern.
+# Alle Paper-Server müssen für globale Sichtbarkeit dieselbe MySQL-Datenbank verwenden.
+server_name: auto
+
+sqlite:
+  file: database/plotinfo-data.db
+
+mysql:
+  host: localhost
+  port: 3306
+  database: global_plotinfo
+  username: minecraft
+  password: password
+  useSSL: false

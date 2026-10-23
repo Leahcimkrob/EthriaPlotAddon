@@ -680,11 +680,7 @@ public final class PlotInfoCommand implements SubcommandExecutor, Listener {
     }
 
     private String serverName() {
-        String configured = plugin.getConfig().getString("database.server_id", "auto");
-        if (configured == null || configured.isBlank() || configured.equalsIgnoreCase("auto")) {
-            return Bukkit.getServer().getName();
-        }
-        return configured;
+        return plugin.getDatabaseManager().getServerName();
     }
 
     private static String resolveUserName(String name, UUID id) {

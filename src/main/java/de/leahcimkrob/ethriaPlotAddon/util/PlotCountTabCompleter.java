@@ -96,6 +96,10 @@ public class PlotCountTabCompleter implements TabCompleter {
                         && "convert".startsWith(args[0].toLowerCase())) {
                     subcommands.add("convert");
                 }
+                if (player.hasPermission("ethriaplotaddon.admin.databaseimport")) {
+                    if ("plotinfoimport".startsWith(args[0].toLowerCase())) subcommands.add("plotinfoimport");
+                    if ("plotcheckimport".startsWith(args[0].toLowerCase())) subcommands.add("plotcheckimport");
+                }
                 if ((player.hasPermission("ethriaplotaddon.plotinfo.view")
                         || player.hasPermission("ethriaplotaddon.plotinfo.edit")
                         || player.hasPermission("ethriaplotaddon.plotinfo.list"))
@@ -136,6 +140,14 @@ public class PlotCountTabCompleter implements TabCompleter {
                 String source = args[1].toLowerCase();
                 return List.of("sqlite", "mysql").stream()
                         .filter(type -> !type.equals(source) && type.startsWith(args[2].toLowerCase()))
+                        .toList();
+            } else if ((args.length == 2 || args.length == 3)
+                    && (args[0].equalsIgnoreCase("plotinfoimport") || args[0].equalsIgnoreCase("plotcheckimport"))
+                    && player.hasPermission("ethriaplotaddon.admin.databaseimport")) {
+                String source = args.length == 3 ? args[1].toLowerCase(Locale.ROOT) : "";
+                return List.of("sqlite", "mysql").stream()
+                        .filter(type -> (args.length != 3 || !type.equals(source))
+                                && type.startsWith(args[args.length - 1].toLowerCase(Locale.ROOT)))
                         .toList();
             } else if (args.length == 2 && args[0].equalsIgnoreCase("plotinfo")
                     && (player.hasPermission("ethriaplotaddon.plotinfo.view")

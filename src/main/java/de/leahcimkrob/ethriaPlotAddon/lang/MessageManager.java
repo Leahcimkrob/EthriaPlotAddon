@@ -265,11 +265,14 @@ public class MessageManager {
 
     private String addPrefix(String key, String message) {
         if (isSystemMessage(key)) return message;
+        boolean plotCheck = key.startsWith("plotcheck_");
         boolean plotInfo = key.startsWith("plotinfo_");
-        String prefixKey = plotInfo ? "prefix_plotinfo" : "prefix";
-        String fallbackPrefix = plotInfo
-                ? "<dark_gray>[<gold>PlotInfo</gold>]<gray> » "
-                : "<dark_gray>[<gold>EthriaCount</gold>]<gray> » ";
+        String prefixKey = plotCheck ? "prefix_plotcheck" : plotInfo ? "prefix_plotinfo" : "prefix";
+        String fallbackPrefix = plotCheck
+                ? "<dark_gray>[<gold>PlotCheck</gold>]<gray> » "
+                : plotInfo
+                    ? "<dark_gray>[<gold>PlotInfo</gold>]<gray> » "
+                    : "<dark_gray>[<gold>EthriaCount</gold>]<gray> » ";
         String prefix = messagesConfig.getString("messages." + prefixKey,
                 messagesConfig.getString("messages.prefix", fallbackPrefix));
         return prefix + message;

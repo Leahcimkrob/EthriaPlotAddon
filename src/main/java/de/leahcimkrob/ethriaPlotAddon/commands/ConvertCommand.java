@@ -33,7 +33,7 @@ public final class ConvertCommand implements SubcommandExecutor {
         }
 
         try {
-            plugin.getDatabaseManager().convert(from, to);
+            plugin.getDatabaseManager().importBetween(from, to);
             player.sendMessage(plugin.getMessageManager().getComponent("convert_success", Map.of("from", from, "to", to)));
         } catch (SQLException exception) {
             plugin.getLogger().log(java.util.logging.Level.SEVERE, "Datenbankkonvertierung fehlgeschlagen.", exception);

@@ -5,6 +5,7 @@ import de.leahcimkrob.ethriaPlotAddon.commands.SubcommandManager;
 import de.leahcimkrob.ethriaPlotAddon.config.ConfigManager;
 import de.leahcimkrob.ethriaPlotAddon.config.BookConfigManager;
 import de.leahcimkrob.ethriaPlotAddon.database.DatabaseManager;
+import de.leahcimkrob.ethriaPlotAddon.database.PlotCheckDatabase;
 import de.leahcimkrob.ethriaPlotAddon.integration.PlotSquaredIntegration;
 import de.leahcimkrob.ethriaPlotAddon.lang.MessageManager;
 import de.leahcimkrob.ethriaPlotAddon.util.DebugLogger;
@@ -17,6 +18,10 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Arrays;
@@ -26,7 +31,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-public class EthriaPlotAddon extends JavaPlugin {
+public class EthriaPlotAddon extends JavaPlugin implements Listener {
     private ConfigManager configManager;
     private BookConfigManager bookConfigManager;
     private MessageManager messageManager;
@@ -34,6 +39,7 @@ public class EthriaPlotAddon extends JavaPlugin {
     private SubcommandManager subcommandManager;
     private TitleUpdateManager titleUpdateManager;
     private DatabaseManager databaseManager;
+    private PlotCheckDatabase plotCheckDatabase;
 
     @Override
     public void onEnable() {
@@ -53,6 +59,17 @@ public class EthriaPlotAddon extends JavaPlugin {
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
+
+        plotCheckDatabase = new PlotCheckDatabase(this);
+        try {
+            plotCheckDatabase.initialize();
+        } catch (Exception exception) {
+            getLogger().severe("PlotCheck-Datenbank konnte nicht initialisiert werden: " + exception.getMessage());
+            exception.printStackTrace();
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+        getServer().getPluginManager().registerEvents(this, this);
 
         // Initialisiere Message Manager mit der konfigurierten Sprache
         messageManager = new MessageManager(this, configManager.getLanguage());
@@ -101,13 +118,28 @@ public class EthriaPlotAddon extends JavaPlugin {
         if (databaseManager != null) {
             databaseManager.close();
         }
+        if (plotCheckDatabase != null) plotCheckDatabase.close();
         // Cleanup Title Update Manager
         if (titleUpdateManager != null) {
             titleUpdateManager.shutdown();
         }
 
-        // Plugin shutdown logic
-        getLogger().info(messageManager.getMessage("plugin_disabled"));
+        // onDisable can run after an early startup failure, before language setup.
+        if (messageManager != null) {
+            getLogger().info(messageManager.getMessage("plugin_disabled"));
+        } else {
+            getLogger().info("EthriaPlotAddon wurde deaktiviert.");
+        }
+    }
+
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        if (plotCheckDatabase != null) plotCheckDatabase.markJoin(event.getPlayer().getUniqueId(), event.getPlayer().getName());
+    }
+
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        if (plotCheckDatabase != null) plotCheckDatabase.markQuit(event.getPlayer().getUniqueId());
     }
 
     @Override
@@ -239,6 +271,8 @@ public class EthriaPlotAddon extends JavaPlugin {
     public DatabaseManager getDatabaseManager() {
         return databaseManager;
     }
+
+    public PlotCheckDatabase getPlotCheckDatabase() { return plotCheckDatabase; }
 
     public MessageManager getMessageManager() {
         return messageManager;

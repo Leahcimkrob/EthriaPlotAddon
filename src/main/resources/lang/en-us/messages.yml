@@ -13,6 +13,8 @@ messages:
   convert_invalid_types: "<red>Allowed database types are sqlite and mysql; source and target must differ."
   convert_success: "<green>Data copied from <yellow><from><green> to <yellow><to><green>."
   convert_failed: "<red>Database conversion failed: <error>"
+  plotinfo_import_success: "<green>Plotinfo import <yellow><from> → <to><green>: inserted <inserted>, skipped <skipped> existing records."
+  plotcheck_import_success: "<green>PlotCheck import <yellow><from> → <to><green>: inserted <inserted>, updated <updated>, skipped <skipped> rows because the destination was newer or equal."
   plotinfo_usage: "<red>Usage: <usage>"
   plotinfo_wrong_world: "<red>Plot not found. The plot ID must belong to your current world."
   plotinfo_own_only: "<red>You can only view plot info for plots you own."
@@ -125,9 +127,9 @@ messages:
   help_tab_completion: "<gray>Tip: Use Tab-Completion for entity names!"
 
   # Plot-Check messages
-  plotcheck_owner_online: "<gold>Plot-Info: <gray>Plot <yellow><plotid> <gray>belongs to <green><owner> <gray>(<green>currently online<gray>)"
-  plotcheck_owner_offline: "<gold>Plot-Info: <gray>Plot <yellow><plotid> <gray>belongs to <red><owner> <gray>(<red>last seen: <lastseen><gray>)"
-  plotcheck_owner_never: "<gold>Plot-Info: <gray>Plot <yellow><plotid> <gray>belongs to <red><owner> <gray>(<red>never been online<gray>)"
+  plotcheck_owner_online: "<gold>Plot-Info: <gray>Plot <yellow><plotid> <gray>belongs to <green><owner> <gray>(<green>currently online | <server><gray>)"
+  plotcheck_owner_offline: "<gold>Plot-Info: <gray>Plot <yellow><plotid> <gray>belongs to <red><owner> <gray>(<red>last seen: <lastseen> | <server><gray>)"
+  plotcheck_owner_never: "<gold>Plot-Info: <gray>Plot <yellow><plotid> <gray>belongs to <red><owner> <gray>(<red>never been online | <server><gray>)"
 
   # Plot-Check Live Update messages
   plotcheck_actionbar_not_on_plot: "<gray>Not standing on a plot"

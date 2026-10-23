@@ -2,6 +2,7 @@
 messages:
   prefix: "<dark_gray>[<gold>PlotCount</gold>]<gray> » "
   prefix_plotinfo: "<dark_gray>[<gold>PlotInfo</gold>]<gray> » "
+  prefix_plotcheck: "<dark_gray>[<gold>PlotCheck</gold>]<gray> » "
 
   # Allgemeine Nachrichten
   plugin_enabled: "Plugin wurde erfolgreich aktiviert!"
@@ -13,6 +14,8 @@ messages:
   convert_invalid_types: "<red>Erlaubt sind sqlite und mysql; Quelle und Ziel müssen verschieden sein."
   convert_success: "<green>Daten wurden von <yellow><from><green> nach <yellow><to><green> übertragen."
   convert_failed: "<red>Datenbankkonvertierung fehlgeschlagen: <error>"
+  plotinfo_import_success: "<green>Plotinfo-Import <yellow><from> → <to><green>: <inserted> neu eingefügt, <skipped> bereits vorhanden übersprungen."
+  plotcheck_import_success: "<green>Plotcheck-Import <yellow><from> → <to><green>: <inserted> neu, <updated> aktualisiert, <skipped> wegen neuerem oder gleichem Zielstand übersprungen."
 
   # Plotinfo
   plotinfo_usage: "<red>Verwendung: <usage>"
@@ -131,9 +134,9 @@ messages:
   help_tab_completion: "<gray>Tipp: Nutze Tab-Completion für Entity-Namen!"
 
   # Plot-Check Nachrichten
-  plotcheck_owner_online: "<gold>Plot-Info: <gray>Plot <yellow><plotid> <gray>gehört <green><owner> <gray>(<green>aktuell online<gray>)"
-  plotcheck_owner_offline: "<gold>Plot-Info: <gray>Plot <yellow><plotid> <gray>gehört <red><owner> <gray>(<red>zuletzt online: <lastseen><gray>)"
-  plotcheck_owner_never: "<gold>Plot-Info: <gray>Plot <yellow><plotid> <gray>gehört <red><owner> <gray>(<red>war noch nie online<gray>)"
+  plotcheck_owner_online: "<gold>Plot-Info: <gray>Plot <yellow><plotid> <gray>gehört <green><owner> <gray>(<green>aktuell online | <server><gray>)"
+  plotcheck_owner_offline: "<gold>Plot-Info: <gray>Plot <yellow><plotid> <gray>gehört <red><owner> <gray>(<red>zuletzt online: <lastseen> | <server><gray>)"
+  plotcheck_owner_never: "<gold>Plot-Info: <gray>Plot <yellow><plotid> <gray>gehört <red><owner> <gray>(<red>war noch nie online | <server><gray>)"
 
   # Plot-Check Live Update Nachrichten
   plotcheck_actionbar_not_on_plot: "<gray>Nicht auf einem Plot"

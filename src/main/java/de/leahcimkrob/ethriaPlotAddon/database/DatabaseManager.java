@@ -1,7 +1,10 @@
 package de.leahcimkrob.ethriaPlotAddon.database;
 
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 
 import java.io.File;
 import java.sql.Connection;
@@ -21,8 +24,10 @@ import java.util.UUID;
 /** JDBC persistence for plot-related records. */
 public final class DatabaseManager implements AutoCloseable {
     private final JavaPlugin plugin;
+    private FileConfiguration config;
     private Connection connection;
     private DatabaseType databaseType;
+    private String serverName;
 
     public DatabaseManager(JavaPlugin plugin) {
         this.plugin = Objects.requireNonNull(plugin, "plugin");
@@ -31,22 +36,42 @@ public final class DatabaseManager implements AutoCloseable {
     /** Opens the configured database and creates the table when needed. */
     public synchronized void initialize() throws SQLException {
         close();
-        FileConfiguration config = plugin.getConfig();
-        String configuredType = config.getString("database.type", "sqlite").toLowerCase(Locale.ROOT);
+        File settingsFile = new File(plugin.getDataFolder(), "database/plotinfo_db.yml");
+        if (!settingsFile.exists()) plugin.saveResource("database/plotinfo_db.yml", false);
+        config = YamlConfiguration.loadConfiguration(settingsFile);
+        String configuredType = config.getString("type", "sqlite").toLowerCase(Locale.ROOT);
         try {
             databaseType = DatabaseType.valueOf(configuredType.toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException exception) {
-            throw new IllegalArgumentException("database.type must be sqlite or mysql", exception);
+            throw new IllegalArgumentException("database/plotinfo_db.yml: type must be sqlite or mysql", exception);
         }
+
+        serverName = resolveServerName();
 
         connection = databaseType == DatabaseType.SQLITE
                 ? openSqlite(config) : openMysql(config);
         createTables();
-        plugin.getLogger().info("Database connected (" + configuredType + ").");
+        plugin.getLogger().info("Plotinfo database connected (" + configuredType + ", server: " + serverName + ").");
     }
 
+    private String resolveServerName() {
+        String configured = config.getString("server_name", "auto");
+        if (configured != null && !configured.isBlank() && !configured.equalsIgnoreCase("auto")) return configured.trim();
+        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+            try {
+                Class<?> papi = Class.forName("me.clip.placeholderapi.PlaceholderAPI");
+                Object value = papi.getMethod("setPlaceholders", OfflinePlayer.class, String.class)
+                        .invoke(null, (OfflinePlayer) null, "%server_name%");
+                if (value instanceof String name && !name.isBlank() && !name.equals("%server_name%")) return name;
+            } catch (ReflectiveOperationException ignored) { }
+        }
+        return Bukkit.getServer().getName();
+    }
+
+    public String getServerName() { return serverName; }
+
     private Connection openSqlite(FileConfiguration config) throws SQLException {
-        String configuredFile = config.getString("database.sqlite.file", "plot-data.db");
+        String configuredFile = config.getString("sqlite.file", "database/plotinfo-data.db");
         File file = new File(configuredFile);
         if (!file.isAbsolute()) file = new File(plugin.getDataFolder(), configuredFile);
         File parent = file.getParentFile();
@@ -61,15 +86,10 @@ public final class DatabaseManager implements AutoCloseable {
     }
 
     private Connection openMysql(FileConfiguration config) throws SQLException {
-        String host = config.getString("database.mysql.host", "localhost");
-        int port = config.getInt("database.mysql.port", 3306);
-        String database = config.getString("database.mysql.database", "ethriaplotaddon");
-        String url = "jdbc:mysql://" + host + ":" + port + "/" + database
-                + "?useSSL=" + config.getBoolean("database.mysql.useSSL", false)
-                + "&allowPublicKeyRetrieval=true";
-        return DriverManager.getConnection(url,
-                config.getString("database.mysql.username", "ethriaplotaddon"),
-                config.getString("database.mysql.password", ""));
+        return MySqlDatabase.open(config.getString("mysql.host", "localhost"),
+                config.getInt("mysql.port", 3306), config.getString("mysql.database", "global_plotinfo"),
+                config.getString("mysql.username", "minecraft"), config.getString("mysql.password", ""),
+                config.getBoolean("mysql.useSSL", false));
     }
 
     private void createTables() throws SQLException {
@@ -490,6 +510,137 @@ public final class DatabaseManager implements AutoCloseable {
         }
     }
 
+    /** Merges plotinfo records without clearing the destination. User names are updated only from newer activity. */
+    public synchronized TransferResult importBetween(String from, String to) throws SQLException {
+        String sourceType = normalizeType(from);
+        String targetType = normalizeType(to);
+        if (sourceType.equals(targetType)) throw new IllegalArgumentException("Source and target databases must differ.");
+        Connection activeConnection = connection;
+        DatabaseType activeType = databaseType;
+        List<TransferPlotInfoEntry> sourceEntries = new java.util.ArrayList<>();
+        List<UserEntry> sourceUsers = new java.util.ArrayList<>();
+        try (Connection source = openConnection(sourceType); Connection target = openConnection(targetType)) {
+            databaseType = "sqlite".equals(sourceType) ? DatabaseType.SQLITE : DatabaseType.MYSQL;
+            connection = source;
+            createTables();
+            try (Statement query = source.createStatement();
+                 ResultSet rows = query.executeQuery("SELECT user_uuid, user_name FROM plot_users")) {
+                while (rows.next()) sourceUsers.add(new UserEntry(UUID.fromString(rows.getString("user_uuid")), rows.getString("user_name")));
+            }
+            String sourceSql = recordSelectSql() + ", plot_info.seen AS seen FROM plot_info LEFT JOIN plot_users owner_user ON owner_user.user_uuid = plot_info.owner_id "
+                    + "LEFT JOIN plot_users teamler_user ON teamler_user.user_uuid = plot_info.teamler_id";
+            try (Statement query = source.createStatement(); ResultSet rows = query.executeQuery(sourceSql)) {
+                while (rows.next()) sourceEntries.add(new TransferPlotInfoEntry(readRecord(rows), rows.getBoolean("seen")));
+            }
+
+            databaseType = "sqlite".equals(targetType) ? DatabaseType.SQLITE : DatabaseType.MYSQL;
+            connection = target;
+            createTables();
+            boolean targetLegacyOwner = hasColumn("plot_info", "plot_owner");
+            boolean targetLegacyExecutor = hasColumn("plot_info", "executor");
+            boolean targetMysql = databaseType == DatabaseType.MYSQL;
+            boolean oldAutoCommit = target.getAutoCommit();
+            target.setAutoCommit(false);
+            int inserted = 0;
+            int skipped = 0;
+            try {
+                for (UserEntry user : sourceUsers) {
+                    Instant sourceActivity = latestUserActivity(source, user.uuid());
+                    Instant targetActivity = latestUserActivity(target, user.uuid());
+                    boolean exists;
+                    try (PreparedStatement query = target.prepareStatement("SELECT 1 FROM plot_users WHERE user_uuid = ?")) {
+                        query.setString(1, user.uuid().toString());
+                        try (ResultSet row = query.executeQuery()) { exists = row.next(); }
+                    }
+                    if (!exists || (sourceActivity != null && (targetActivity == null || sourceActivity.isAfter(targetActivity)))) {
+                        upsertUser(user.uuid(), user.name());
+                    }
+                }
+                for (TransferPlotInfoEntry entry : sourceEntries) {
+                    if (containsRecord(target, targetMysql, entry.entry().record())) {
+                        skipped++;
+                        continue;
+                    }
+                    insertImportedRecord(target, targetMysql, entry, targetLegacyOwner, targetLegacyExecutor);
+                    inserted++;
+                }
+                target.commit();
+            } catch (SQLException exception) {
+                target.rollback();
+                throw exception;
+            } finally {
+                target.setAutoCommit(oldAutoCommit);
+            }
+            return new TransferResult(inserted, skipped);
+        } finally {
+            connection = activeConnection;
+            databaseType = activeType;
+        }
+    }
+
+    private Instant latestUserActivity(Connection database, UUID userId) throws SQLException {
+        try (PreparedStatement statement = database.prepareStatement(
+                "SELECT MAX(recorded_at) FROM plot_info WHERE owner_id = ? OR teamler_id = ?")) {
+            statement.setString(1, userId.toString());
+            statement.setString(2, userId.toString());
+            try (ResultSet row = statement.executeQuery()) {
+                if (!row.next()) return null;
+                String value = row.getString(1);
+                if (value == null) return null;
+                try { return Instant.parse(value); }
+                catch (RuntimeException ignored) { return row.getTimestamp(1).toInstant(); }
+            }
+        }
+    }
+
+    private boolean containsRecord(Connection target, boolean targetMysql, PlotRecord record) throws SQLException {
+        String nullSafe = targetMysql ? " <=> ?" : " IS ?";
+        String sql = "SELECT 1 FROM plot_info WHERE server = ? AND world = ? AND plot_x = ? AND plot_y = ? "
+                + "AND owner_id" + nullSafe + " AND teamler_id = ? AND x = ? AND y = ? AND z = ? AND recorded_at = ? AND note" + nullSafe;
+        try (PreparedStatement statement = target.prepareStatement(sql)) {
+            statement.setString(1, record.server());
+            statement.setString(2, record.world());
+            statement.setInt(3, record.plotX());
+            statement.setInt(4, record.plotY());
+            if (record.ownerId() == null) statement.setNull(5, Types.VARCHAR); else statement.setString(5, record.ownerId().toString());
+            statement.setString(6, record.teamlerId().toString());
+            statement.setInt(7, record.x()); statement.setInt(8, record.y()); statement.setInt(9, record.z());
+            if (targetMysql) statement.setTimestamp(10, Timestamp.from(record.recordedAt()));
+            else statement.setString(10, record.recordedAt().toString());
+            if (record.note() == null) statement.setNull(11, Types.VARCHAR); else statement.setString(11, record.note());
+            try (ResultSet row = statement.executeQuery()) { return row.next(); }
+        }
+    }
+
+    private void insertImportedRecord(Connection target, boolean targetMysql, TransferPlotInfoEntry entry,
+                                      boolean legacyOwner, boolean legacyExecutor) throws SQLException {
+        PlotRecord record = entry.entry().record();
+        String columns = "server, world, plot_x, plot_y, owner_id, teamler_id, x, y, z, recorded_at, note, seen"
+                + (legacyOwner ? ", plot_owner" : "") + (legacyExecutor ? ", executor" : "");
+        int count = 12 + (legacyOwner ? 1 : 0) + (legacyExecutor ? 1 : 0);
+        String sql = "INSERT INTO plot_info (" + columns + ") VALUES ("
+                + String.join(", ", java.util.Collections.nCopies(count, "?")) + ")";
+        try (PreparedStatement statement = target.prepareStatement(sql)) {
+            statement.setString(1, record.server()); statement.setString(2, record.world());
+            statement.setInt(3, record.plotX()); statement.setInt(4, record.plotY());
+            if (record.ownerId() == null) statement.setNull(5, Types.VARCHAR); else statement.setString(5, record.ownerId().toString());
+            statement.setString(6, record.teamlerId().toString());
+            statement.setInt(7, record.x()); statement.setInt(8, record.y()); statement.setInt(9, record.z());
+            if (targetMysql) statement.setTimestamp(10, Timestamp.from(record.recordedAt()));
+            else statement.setString(10, record.recordedAt().toString());
+            if (record.note() == null) statement.setNull(11, Types.VARCHAR); else statement.setString(11, record.note());
+            statement.setBoolean(12, entry.seen());
+            int next = 13;
+            if (legacyOwner) statement.setString(next++, record.ownerName());
+            if (legacyExecutor) statement.setString(next, record.teamlerName());
+            statement.executeUpdate();
+        }
+    }
+
+    private record UserEntry(UUID uuid, String name) { }
+    private record TransferPlotInfoEntry(PlotRecordEntry entry, boolean seen) { }
+    public record TransferResult(int inserted, int skipped) { }
+
     private String normalizeType(String type) {
         String normalized = type == null ? "" : type.trim().toLowerCase(Locale.ROOT);
         if (!List.of("sqlite", "mysql").contains(normalized)) {
@@ -499,9 +650,8 @@ public final class DatabaseManager implements AutoCloseable {
     }
 
     private Connection openConnection(String type) throws SQLException {
-        FileConfiguration config = plugin.getConfig();
         if ("sqlite".equals(type)) {
-            String configuredFile = config.getString("database.sqlite.file", "plot-data.db");
+            String configuredFile = config.getString("sqlite.file", "database/plotinfo-data.db");
             File file = new File(configuredFile);
             if (!file.isAbsolute()) file = new File(plugin.getDataFolder(), configuredFile);
             File parent = file.getParentFile();
@@ -514,14 +664,10 @@ public final class DatabaseManager implements AutoCloseable {
             }
             return sqlite;
         }
-        String url = "jdbc:mysql://" + config.getString("database.mysql.host", "localhost") + ":"
-                + config.getInt("database.mysql.port", 3306) + "/"
-                + config.getString("database.mysql.database", "ethriaplotaddon")
-                + "?useSSL=" + config.getBoolean("database.mysql.useSSL", false)
-                + "&allowPublicKeyRetrieval=true";
-        return DriverManager.getConnection(url,
-                config.getString("database.mysql.username", "ethriaplotaddon"),
-                config.getString("database.mysql.password", ""));
+        return MySqlDatabase.open(config.getString("mysql.host", "localhost"),
+                config.getInt("mysql.port", 3306), config.getString("mysql.database", "global_plotinfo"),
+                config.getString("mysql.username", "minecraft"), config.getString("mysql.password", ""),
+                config.getBoolean("mysql.useSSL", false));
     }
 
     private String userName(Connection database, UUID id) throws SQLException {

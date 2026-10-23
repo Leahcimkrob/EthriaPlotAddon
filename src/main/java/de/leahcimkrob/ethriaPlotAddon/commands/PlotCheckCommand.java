@@ -10,9 +10,6 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
@@ -181,22 +178,32 @@ public class PlotCheckCommand implements SubcommandExecutor {
             ownerName = "Unbekannt";
         }
 
-        // Prüfe ob Owner online ist
-        Player onlineOwner = Bukkit.getPlayer(ownerUuid);
-        if (onlineOwner != null && onlineOwner.isOnline()) {
+        // Globaler Status aus der gemeinsamen PlotCheck-Datenbank.
+        de.leahcimkrob.ethriaPlotAddon.database.PlotCheckDatabase.PlayerStatus status;
+        try {
+            status = plugin.getPlotCheckDatabase().getStatus(ownerUuid, ownerName);
+        } catch (Exception exception) {
+            plugin.getLogger().warning("PlotCheck-Status für " + ownerUuid + " konnte nicht gelesen werden: " + exception.getMessage());
+            status = new de.leahcimkrob.ethriaPlotAddon.database.PlotCheckDatabase.PlayerStatus(
+                    Bukkit.getPlayer(ownerUuid) != null, owner.getLastSeen(), null);
+        }
+
+        if (status.online()) {
             // Owner ist online
             Map<String, String> replacements = new HashMap<>();
             replacements.put("owner", ownerName);
             replacements.put("plotId", plot.getId().toString());
+            replacements.put("server", status.server() == null ? "unbekannt" : status.server());
 
             player.sendMessage(plugin.getMessageManager().getComponent("plotcheck_owner_online", replacements));
         } else {
             // Owner ist offline - zeige letzte Online-Zeit
-            long lastSeen = owner.getLastSeen();
+            long lastSeen = status.lastOnline() > 0 ? status.lastOnline() : owner.getLastSeen();
 
             Map<String, String> replacements = new HashMap<>();
             replacements.put("owner", ownerName);
             replacements.put("plotId", plot.getId().toString());
+            replacements.put("server", status.server() == null ? "unbekannt" : status.server());
 
             if (lastSeen == 0) {
                 // Spieler war noch nie online oder unbekannt
