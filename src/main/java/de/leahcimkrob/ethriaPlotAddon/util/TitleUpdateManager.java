@@ -9,9 +9,8 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -138,7 +137,7 @@ public class TitleUpdateManager {
             String actionBarMessage;
 
             if (plot == null) {
-                actionBarMessage = "§7Nicht auf einem Plot";
+                actionBarMessage = renderMessage("plotcheck_actionbar_not_on_plot", Map.of());
             } else {
                 actionBarMessage = generatePlotInfo(plot);
             }
@@ -158,51 +157,52 @@ public class TitleUpdateManager {
      * Generiert die Plot-Info für die Title Message
      */
     private String generatePlotInfo(Plot plot) {
-        StringBuilder info = new StringBuilder();
-
-        // Plot ID
-        info.append("§6Plot: §e").append(plot.getId().toString()).append(" ");
-
-        // Plot Owner Info
         UUID ownerUuid = plot.getOwner();
         if (ownerUuid == null) {
-            info.append("§7(Kein Besitzer)");
-        } else {
-            OfflinePlayer owner = Bukkit.getOfflinePlayer(ownerUuid);
-            String ownerName = owner.getName();
-            if (ownerName == null) {
-                ownerName = "Unbekannt";
-            }
-
-            // Prüfe ob Owner online ist
-            Player onlineOwner = Bukkit.getPlayer(ownerUuid);
-            if (onlineOwner != null && onlineOwner.isOnline()) {
-                info.append("§7Besitzer: §a").append(ownerName).append(" §7(§aOnline§7)");
-            } else {
-                // Owner ist offline
-                long lastSeen = owner.getLastSeen();
-                if (lastSeen == 0) {
-                    info.append("§7Besitzer: §c").append(ownerName).append(" §7(§cNie online§7)");
-                } else {
-                    String timeAgo = formatTimeAgoShort(lastSeen);
-                    info.append("§7Besitzer: §c").append(ownerName).append(" §7(§c").append(timeAgo).append("§7)");
-                }
-            }
+            return renderMessage("plotcheck_actionbar_no_owner", Map.of("plotid", plot.getId().toString()));
         }
 
-        return info.toString();
+        OfflinePlayer owner = Bukkit.getOfflinePlayer(ownerUuid);
+        String ownerName = owner.getName() == null ? "Unbekannt" : owner.getName();
+        try {
+            de.leahcimkrob.ethriaPlotAddon.database.PlotCheckDatabase.PlayerStatus status =
+                    plugin.getPlotCheckDatabase().getStatus(ownerUuid, ownerName);
+            String server = status.server() == null || status.server().isBlank() ? "Unbekannt" : status.server();
+            Map<String, String> placeholders = Map.of(
+                    "plotid", plot.getId().toString(),
+                    "owner", ownerName,
+                    "server", server);
+            if (status.online()) {
+                return renderMessage("plotcheck_actionbar_online", placeholders);
+            }
+            if (status.lastOnline() <= 0) {
+                return renderMessage("plotcheck_actionbar_never", placeholders);
+            }
+            Map<String, String> offlinePlaceholders = new HashMap<>(placeholders);
+            offlinePlaceholders.put("lastseen", formatTimeAgoShort(status.lastOnline()));
+            return renderMessage("plotcheck_actionbar_offline", offlinePlaceholders);
+        } catch (Exception e) {
+            plugin.getLogger().warning("PlotCheck-Status für ActionBar konnte nicht aus der Datenbank gelesen werden: " + e.getMessage());
+            return renderMessage("plotcheck_actionbar_unknown", Map.of(
+                    "plotid", plot.getId().toString(), "owner", ownerName));
+        }
+    }
+
+    private String renderMessage(String key, Map<String, String> placeholders) {
+        return LegacyComponentSerializer.legacySection().serialize(
+                plugin.getMessageManager().getComponent(key, placeholders, false));
     }
 
     /**
      * Kurze Formatierung der Zeit seit letztem Online-Status für Title
      */
     private String formatTimeAgoShort(long lastSeenMillis) {
-        Instant lastSeen = Instant.ofEpochMilli(lastSeenMillis);
-        Instant now = Instant.now();
-
-        long days = ChronoUnit.DAYS.between(lastSeen, now);
-        long hours = ChronoUnit.HOURS.between(lastSeen, now) % 24;
-        long minutes = ChronoUnit.MINUTES.between(lastSeen, now) % 60;
+        long elapsedMillis = Math.max(0L, System.currentTimeMillis() - lastSeenMillis);
+        long minutesTotal = elapsedMillis / 60_000L;
+        long hoursTotal = minutesTotal / 60L;
+        long days = hoursTotal / 24L;
+        long hours = hoursTotal % 24L;
+        long minutes = minutesTotal % 60L;
 
         if (days > 0) {
             if (days >= 30) {

@@ -130,6 +130,12 @@ messages:
   plotcheck_owner_never: "<gold>Plot-Info: <gray>Plot <yellow><plotid> <gray>belongs to <red><owner> <gray>(<red>never been online<gray>)"
 
   # Plot-Check Live Update messages
+  plotcheck_actionbar_not_on_plot: "<gray>Not standing on a plot"
+  plotcheck_actionbar_no_owner: "<gold>Plot: <yellow><plotid> <gray>(No owner)"
+  plotcheck_actionbar_online: "<gold>Plot: <yellow><plotid> <gray>Owner: <green><owner> <gray>(<green>Online | <server><gray>)"
+  plotcheck_actionbar_offline: "<gold>Plot: <yellow><plotid> <gray>Owner: <red><owner> <gray>(<red><lastseen> | <server><gray>)"
+  plotcheck_actionbar_never: "<gold>Plot: <yellow><plotid> <gray>Owner: <red><owner> <gray>(<red>Never online | <server><gray>)"
+  plotcheck_actionbar_unknown: "<gold>Plot: <yellow><plotid> <gray>Owner: <red><owner> <gray>(<red>Status unknown<gray>)"
   plotcheck_live_enabled: "<green>Plot-Info Updates enabled! Plot information will now be permanently displayed in the ActionBar."
   plotcheck_live_disabled: "<green>Plot-Info Updates disabled! The ActionBar has been reset."
   plotcheck_live_already_enabled: "<yellow>Plot-Info Updates are already enabled!"
