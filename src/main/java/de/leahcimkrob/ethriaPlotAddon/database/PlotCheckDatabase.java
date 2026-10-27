@@ -5,6 +5,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
+import de.leahcimkrob.ethriaPlotAddon.util.ServerNameResolver;
 
 import java.io.File;
 import java.sql.Connection;
@@ -65,15 +66,7 @@ public final class PlotCheckDatabase implements AutoCloseable {
     private String resolveServerName() {
         String configured = settings.getString("server_name", "auto");
         if (configured != null && !configured.isBlank() && !configured.equalsIgnoreCase("auto")) return configured.trim();
-        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
-            try {
-                Class<?> papi = Class.forName("me.clip.placeholderapi.PlaceholderAPI");
-                Object value = papi.getMethod("setPlaceholders", org.bukkit.OfflinePlayer.class, String.class)
-                        .invoke(null, (OfflinePlayer) null, "%server_name%");
-                if (value instanceof String name && !name.isBlank() && !name.equals("%server_name%")) return name;
-            } catch (ReflectiveOperationException ignored) { }
-        }
-        return Bukkit.getServer().getName();
+        return ServerNameResolver.resolve(plugin);
     }
 
     private Connection openSqlite() throws SQLException {

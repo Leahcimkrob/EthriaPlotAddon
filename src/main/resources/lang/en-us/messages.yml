@@ -9,6 +9,8 @@ messages:
   plotsquared_not_found: "PlotSquared not found! Plugin will be disabled."
   plotsquared_found: "PlotSquared detected. Plugin ready."
   config_reloaded: "Configuration has been reloaded."
+  server_name_usage: "<red>Usage: <usage>"
+  server_name_current: "<gray>Detected server name: <yellow><servername>"
   convert_usage: "<red>Usage: <usage>"
   convert_invalid_types: "<red>Allowed database types are sqlite and mysql; source and target must differ."
   convert_success: "<green>Data copied from <yellow><from><green> to <yellow><to><green>."

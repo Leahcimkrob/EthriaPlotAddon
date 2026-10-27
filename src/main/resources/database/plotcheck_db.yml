@@ -4,7 +4,7 @@
 type: sqlite
 
 # Empfohlen: pro Paper-Server einen festen Netzwerknamen eintragen (z. B. Event oder Citybuild).
-# "auto" verwendet Bukkit Server.getName(); PlaceholderAPI kann %server_name% liefern.
+# "auto" verwendet zuerst den LuckPerms-Servernamen; ohne LuckPerms Paper-Name:Port.
 # Alle Paper-Server müssen für globale Sichtbarkeit dieselbe MySQL-Datenbank verwenden.
 server_name: auto
 

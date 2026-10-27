@@ -15,6 +15,9 @@ depend:
   - PlotSquared
   - PlaceholderAPI
 
+softdepend:
+  - LuckPerms
+
 
 permissions:
   # === ADMIN BERECHTIGUNGEN ===

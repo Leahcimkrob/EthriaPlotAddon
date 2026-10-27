@@ -36,6 +36,7 @@ public class SubcommandManager {
 
         // Reload-Command
         registerSubcommand("reload", new ReloadCommand(plugin));
+        registerSubcommand("server", new ServerNameCommand(plugin));
 
         // Datenbankkonvertierung
         registerSubcommand("convert", new ConvertCommand(plugin));
